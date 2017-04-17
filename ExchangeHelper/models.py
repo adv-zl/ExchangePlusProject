@@ -1,35 +1,24 @@
 from django.db import models
-
-
-# Создание администратора касс
-class ChiefCashier(models.Model):
-	# Логин администратора
-	chief_login = models.CharField(max_length = 30, unique = True)
-	# Пароль администратора
-	chief_password = models.CharField(max_length = 30)
-
-	person_role = models.BooleanField(default = True)
-
-	# Получаем роли
-	def get_chief_role(self):
-		return self.person_role
+from django.contrib.auth.models import AbstractBaseUser, AbstractUser, User, UserManager
 
 
 # Создание рядовойго кассира
-class OrdinaryCashier(models.Model):
+class OrdinaryCashier(AbstractBaseUser):
 	# ФИО кассира
-	ordinary_cashier_name = models.CharField(max_length = 20, unique = True)
+	ordinary_cashier_name = models.CharField(max_length = 20, unique = True, blank=True)
 	# Логин кассира
-	ordinary_cashier_login = models.CharField(max_length = 30, unique = True)
-	# Пароль для входа кассира
-	ordinary_cashier_password = models.CharField(max_length = 30)
+	username = models.CharField(max_length = 30, unique = True, blank = True, null = True)
 	# ПОлное описание кассы
-	cashier_description_full = models.CharField(max_length = 600)
+	cashier_description_full = models.CharField(max_length = 600, blank=True)
 	# Краткое описание кассы
-	cashier_description_short = models.CharField(max_length = 100)
+	cashier_description_short = models.CharField(max_length = 100, blank=True)
 	# Курс валют для касира
-	exchange_rate = models.CharField(max_length = 200)
+	exchange_rate = models.CharField(max_length = 200, blank=True)
 
+	objects = UserManager()
+
+	USERNAME_FIELD = 'username'
+	REQUIRED_FIELDS = []
 	# Получаем имя юзера
 	def get_cashier_name(self):
 		return self.ordinary_cashier_name
