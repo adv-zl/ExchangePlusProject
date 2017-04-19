@@ -1,0 +1,44 @@
+{% block content %}
+<div style="height:100px;">
+    <header>
+        {% include 'header.html' %}
+        <ul class="nav nav-pills">
+            <li role="presentation"><a href="/login">
+                <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                Log in</a></li>
+            <li role="presentation"><a href="/registration">
+                <span class="glyphicon glyphicon-registration-mark" aria-hidden="true"></span>
+                Registration</a></li>
+        </ul>
+    </header>
+</div>
+<body>
+      <div align="center" class="panel panel-default">
+      <div class="panel-heading">Registration form</div>
+          <form  id="user_registration" method="post">
+              <div class="input-group">
+                  <div style="width:210px;" class="input-group-addon" id="user_name">Enter name</div>
+                  <input required type="text" class="form-control"
+                         placeholder="User name" name="user_name">
+              </div>
+              <div class="input-group">
+                  <div style="width: 210px" class="input-group-addon" id="user_password_first">Enter Password</div>
+                  <input type="password" class="form-control"
+                         name="user_password_first" placeholder="Enter Password" required>
+              </div>
+              <div class="input-group">
+                  <div style="width: 210px" class="input-group-addon" id="user_password_second">Re enter Password</div>
+                  <input type="password" class="form-control"
+                         name="user_password_second" placeholder="Re enter Password" required>
+              </div>
+              <div class="input-group">
+                  <div style="width: 210px" class="input-group-addon" id="user_email">Enter Email</div>
+                  <input type="email" class="form-control"
+                         name="user_email" placeholder="Enter Email" required>
+              </div>
+              <input class="btn btn-info float-xs-right" type="submit" value="Registration">
+          </form>
+              <p>{{error}}</p>
+      </div>
+  </body>
+{% endblock %}

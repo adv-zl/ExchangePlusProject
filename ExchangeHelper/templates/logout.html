@@ -1,0 +1,37 @@
+<html>
+<header>
+    <link href="/static/bootstrap/css/bootstrap.css" type="text/css" rel="stylesheet">
+    <script type="text/javascript" src="/static/bootstrap/js/bootstrap.js"></script>
+    <title>Money Exchange Helper</title>
+    <nav class="navbar navbar-default">
+        <div class="container-fluid">
+            <!-- Brand and toggle get grouped for better mobile display -->
+            <div class="navbar-header">
+                <a class="navbar-brand" href="/index">
+                    <img style="max-width:60px; margin-top: -22px;"
+                         src="/static/image/logo.svg" alt="Index page">
+                </a>
+            </div>
+            <ul class="nav navbar-nav navbar-right">
+                <a href="/login">
+                    <p></p>
+                    <button style="width: 160px;" value=""
+                            type="button"
+                            class="btn btn-default" >
+                        <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span>
+                        Вход в систему
+                  </button>
+              </a>
+          </ul>
+        </div>
+    </nav>
+</header>
+<body>
+<div>
+    <h3 align="center"><strong>Вы успешно вышли из приложения!</strong></h3>
+</div>
+{% block footer %}
+    <p>{% include 'footer.html' %}</p>
+{% endblock %}
+</body>
+</html>

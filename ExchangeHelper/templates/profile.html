@@ -1,0 +1,99 @@
+{% block content %}
+<div style="height:100px;">
+    <header>
+        {% include 'header.html' %}
+    </header>
+</div>
+<body>
+<div align="center" >
+    {% if error %}
+        <h3>{{ error }}</h3>
+    {% endif %}
+    <!-- Button trigger modal -->
+    <button style="width:210px;" type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal">
+            Create new element
+    </button>
+        <!-- Modal -->
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+        <div class="modal-dialog" role="document">
+            {% include form %}
+        </div>
+    </div>
+</div>
+<div align="center">
+      <!-- Nav tabs -->
+    <ul class="nav nav-tabs" role="tablist">
+        <li role="presentation" class="active"><a href="#flowers" aria-controls="home" role="tab" data-toggle="tab">Flowers</a></li>
+        <li role="presentation"><a href="#trees" aria-controls="profile" role="tab" data-toggle="tab">Trees</a></li>
+        <li role="presentation"><a href="#other" aria-controls="profile" role="tab" data-toggle="tab">Other</a></li>
+        <li role="presentation"><a href="#notes" aria-controls="profile" role="tab" data-toggle="tab">Notes</a></li>
+        <li role="presentation"><a href="#gallery" aria-controls="profile" role="tab" data-toggle="tab">Gallery</a></li>
+    </ul>
+    <!-- Tab panes -->
+    <div class="tab-content">
+        <div role="tabpanel" class="tab-pane active" id="flowers">
+            {% if flowers %}
+                {% include flowers %}
+            {% endif %}
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="trees">
+            {% if trees %}
+                {% include trees %}
+            {% endif %}
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="other">
+            {% if others %}
+                {% include othres %}
+            {% endif %}
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="notes">
+            {% if notes %}
+                {% include notes %}
+            {% endif %}
+        </div>
+
+        <div role="tabpanel" class="tab-pane" id="gallery">
+            <div id="carousel-example-generic" class="carousel slide" data-ride="carousel">
+                <!-- Indicators -->
+                <!-- Выставить кол-во элементов равное кол-ву фотографий юзера -->
+                <ol class="carousel-indicators">
+                    <li data-target="#carousel-example-generic" data-slide-to="0" class="active"></li>
+                    <li data-target="#carousel-example-generic" data-slide-to="1"></li>
+                </ol>
+                <!-- Wrapper for slides -->
+                <div class="carousel-inner" role="listbox">
+                    <div class="item active">
+                        <img width="200" height="300" src="http://www.bonsaitreegardener.net/wp-content/uploads/2015/04/flowering-bonsai-tree.jpg" alt="...">
+                        <div class="carousel-caption">
+                            <!-- Подпись фотографии -->
+                        </div>
+                    </div>
+
+                    <!-- Этот элемент можно загонять в цикл -->
+                    <div class="item">
+                        <img width="200" height="300" src="http://previews.123rf.com/images/photohomepage/photohomepage1105/photohomepage110500038/9609667-Violett-flowers-of-a-azalea-bonsai-Stock-Photo-bonsai-japanese-tree.jpg" alt="...">
+                        <div class="carousel-caption">
+                            <!-- Подпись фотографии -->
+                        </div>
+                    </div>
+                    <!-- Имя юзера которому принадлежит галерея фотографий -->
+                </div>
+
+                <!-- Controls -->
+                <a class="left carousel-control" href="#carousel-example-generic" role="button" data-slide="prev">
+                    <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
+                    <span class="sr-only">Previous</span>
+                </a>
+                <a class="right carousel-control" href="#carousel-example-generic" role="button" data-slide="next">
+                    <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
+                    <span class="sr-only">Next</span>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+{% endblock %}

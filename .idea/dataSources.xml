@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="Exchange Helper" uuid="b393557b-7232-47ef-ab5d-c68b868553c5">
+    <data-source source="LOCAL" name="ExchangeHelp" uuid="28bc0501-703d-4777-a12c-0ba17298cba3">
       <driver-ref>postgresql</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.postgresql.Driver</jdbc-driver>
-      <jdbc-url>jdbc:postgresql://localhost:5432/postgres</jdbc-url>
+      <jdbc-url>jdbc:postgresql://localhost:5432/ExchangeHelp</jdbc-url>
     </data-source>
   </component>
 </project>

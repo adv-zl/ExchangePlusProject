@@ -1,0 +1,37 @@
+{% block content %}
+<nav class="navbar navbar-default">
+  <div class="container-fluid">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+          <a class="navbar-brand" href="/index">
+              <img style="max-width:60px; margin-top: -22px;"
+                   src="/static/image/logo.svg" alt="Index page">
+          </a>
+      </div>
+      <!-- Collect the nav links, forms, and other content for toggling -->
+      <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          <ul class="nav navbar-nav">
+              <li role="presentation" class="active">
+                  <a href="/private">
+                      Личный кабинет
+                      <span class="badge">42</span>
+                  </a>
+              </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
+
+              <a href="/logout">
+                  <p></p>
+                  <button style="width: 160px;" value="Log Out"
+                          type="button"
+                          class="btn btn-default" >
+                      <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                      Выход из системы
+                  </button>
+              </a>
+          </ul>
+      </div><!-- /.navbar-collapse -->
+  </div><!-- /.container-fluid -->
+</nav>
+
+{% endblock %}
