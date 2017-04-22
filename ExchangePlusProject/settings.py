@@ -77,12 +77,8 @@ WSGI_APPLICATION = 'ExchangePlusProject.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'ExchangeHelp',
-        'USER': 'postgres',
-        'PASSWORD': '12345',
-        'HOST': 'localhost', # Set to empty string for localhost.
-        'PORT': '', # Set to empty string for default.
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': 'ExchangeDB',
     }
 }
 

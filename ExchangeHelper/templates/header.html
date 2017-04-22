@@ -10,16 +10,26 @@
       </div>
       <!-- Collect the nav links, forms, and other content for toggling -->
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+          {% if role %}
           <ul class="nav navbar-nav">
               <li role="presentation" class="active">
                   <a href="/private">
+                      <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
                       Личный кабинет
-                      <span class="badge">42</span>
+                      <span class="badge">99</span>
                   </a>
               </li>
           </ul>
-          <ul class="nav navbar-nav navbar-right">
+          {% endif %}
+          <ul class="nav navbar-nav">
+              <li role="presentation" class="active">
+                  <span class="glyphicon glyphicon-hand-right" aria-hidden="true"></span>
+                  <label style="margin-top: 15px">Добро пожаловать,
+                      {{ person }}!</label>
 
+              </li>
+          </ul>
+          <ul class="nav navbar-nav navbar-right">
               <a href="/logout">
                   <p></p>
                   <button style="width: 160px;" value="Log Out"

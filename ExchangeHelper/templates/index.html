@@ -3,35 +3,15 @@
 <div class="container-fluid cont-wrap ng-scope">
     <div class="row">
         <div class="col-sm-3">
-            <div class="well bs-sidebar" id="sidebar" style="background-color:#fff">
-                <ul class="nav nav-pills nav-stacked">
-                    <li>
-                        <a href="/index">
-                            Обзор
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/support">
-                            Подкрепления
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/encashment">
-                            Инкассации
-                        </a>
-                    </li>
-                    <li>
-                        <a href="/operation">
-                            Создать операцию
-                        </a>
-                    </li>
-                </ul>
-            </div>
+            {% block page %}
+                {% include user_menu %}
+            {% endblock %}
             <p>
             <div class="table-condensed">
                 <div class="panel panel-default">
                     <div class="panel-heading">
                         Курсы валют
+                        {% if role %}
                         <a href="/edit-exchange">
                             <button type="button" class="btn btn-default btn">
                                 <span class="glyphicon glyphicon-cog"
@@ -40,6 +20,7 @@
                                 Изменить
                             </button>
                         </a>
+                        {% endif %}
                     </div>
                     <table class="table">
                         <tr>
@@ -82,24 +63,20 @@
             </div>
         </div>
         <div class="col-sm-9">
-            <div class="btn btn-group ng-scope">
-                <button type="button" class="btn btn-default">
-                    <span aria-hidden="true">
-                        #1 Касса
-                    </span>
-                </button>
-                <button type="button" class="btn btn-default">
-                    <span aria-hidden="true">
-                        #2 Касса
-                    </span>
-                </button>
-                <button type="button" class="btn btn-default">
-                    <span aria-hidden="true">
-                        И т.д.
-                    </span>
-                </button>
-            </div>
+            {% if role %}
+                Все кассы:
+                {% for element in users %}
+                    <div class="btn btn-group ng-scope">
+                        <button type="button" class="btn btn-default">
+                            <span aria-hidden="true">
+                                {{ element.cashier_description_short }}
+                            </span>
+                        </button>
+                    </div>
+                {% endfor %}
+            {% endif %}
             <p></p>
+            Ваша касса:
             <div class="input-group">
                 <form class="navbar-form navbar-left" role="search">
                     <div class="form-group">
@@ -115,7 +92,7 @@
                 <!-- Table -->
                 <table class="table">
                     <tr>
-                        <th>Номер</th>
+                        <th>№</th>
                         <th>Дата и время</th>
                         <th>UAH</th>
                         <th>USD</th>
@@ -126,7 +103,9 @@
                         <th>...</th>
                         <th>...</th>
                         <!-- Только для админа -->
-                        <th>Удалить</th>
+                        {% if role %}
+                        <th>Действие</th>
+                        {% endif %}
                         <!-- Только для админа -->
                     </tr>
                     <tr>
@@ -153,7 +132,9 @@
                         <th>...</th>
                         <th>...</th>
                         <th>...</th>
+                        {% if role %}
                         <td><a href="/delete">Удалить</a></td>
+                        {% endif %}
                     </tr>
                     <tr>
                         <td>N</td>
@@ -166,7 +147,9 @@
                         <th>...</th>
                         <th>...</th>
                         <th>...</th>
+                        {% if role %}
                         <td><a href="/delete">Удалить</a></td>
+                        {% endif %}
                     </tr>
                     <tr>
                         <td></td>
@@ -183,11 +166,13 @@
                     </tr>
                 </table>
             </div>
-            <div align="center" style="width: 500px" class="alert alert-danger"
+            {% if alert %}
+                <div align="center" style="width: 500px" class="alert alert-danger"
                  role="alert">
                 <h4><strong>Внимание!</strong></h4>
                 <p>Сумма в обменнике превышает дозволенную!</p>
             </div>
+            {% endif %}
         </div>
     </div>
 </div>
