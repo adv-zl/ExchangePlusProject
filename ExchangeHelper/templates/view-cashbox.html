@@ -3,19 +3,12 @@
 <div class="container-fluid cont-wrap ng-scope">
     <div class="row">
         <div class="col-sm-3">
-            {% if not role %}
-                {% include user_menu %}
-                <p></p>
-                {% include exchange_rate %}
-            {% endif %}
-            {% if role %}
-                {% include user_create %}
-            {% endif %}
+            {% include user_menu %}
+            <p></p>
+            {% include exchange_rate %}
         </div>
         <div class="col-sm-9">
-        <div>
-    {% if not role %}
-        <div class="panel-body">
+            <div class="panel-body">
             <h3><strong>{{ user_inform}}</strong></h3>
             <p></p>
             <h4>{{ user_inform.cashier_description_full }}</h4>
@@ -103,24 +96,8 @@
                     </tr>
                 </table>
             </div>
+            </div>
         </div>
-    {% endif %}
-    {% if role %}
-        Все кассы:
-        {% for element in users %}
-            <a href="/view-cashbox/{{ element.id }}">
-                  <p></p>
-                  <button type="button" class="btn btn-default btn-small"
-                          data-toggle="tooltip"
-                          data-placement="left" title="{{ element.cashier_description_full }}">
-                      <span class="glyphicon glyphicon-euro" aria-hidden="true"></span>
-                      {{ element.cashier_description_short }}
-                  </button>
-              </a>
-        {% endfor %}
-    {% endif %}
-        </div>
-    </div>
 </div>
 </div>
 </body>

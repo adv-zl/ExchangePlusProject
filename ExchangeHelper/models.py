@@ -3,23 +3,17 @@ from django.contrib.auth.models import AbstractBaseUser, AbstractUser, User, Use
 
 
 # Создание рядовойго кассира
-class OrdinaryCashier(models.Model):
-	# ФИО кассира
-	ordinary_cashier_name = models.CharField(max_length = 20, unique = True, blank=True)
-	# Логин кассира
+class OrdinaryCashier(models.Model):# Логин кассира
 	user = models.ForeignKey(User)
 	# ПОлное описание кассы
-	cashier_description_full = models.CharField(max_length = 600, blank=True)
+	cashier_description_full = models.CharField(max_length = 600)
 	# Краткое описание кассы
-	cashier_description_short = models.CharField(max_length = 100, blank=True)
+	cashier_description_short = models.CharField(max_length = 100)
 	# Курс валют для касира
-	exchange_rate = models.CharField(max_length = 200, blank=True)
+	exchange_rate = models.CharField(max_length = 400)
 
 	def __str__(self):
 		return self.cashier_description_short
-	# Получаем имя юзера
-	def get_cashier_name(self):
-		return self.ordinary_cashier_name
 
 	# Получаем краткое описание юзера
 	def get_cashier_short_description(self):
@@ -40,14 +34,14 @@ class ExchangeActions(models.Model):
 	operation_date = models.DateField()
 	# Время операции
 	operation_time = models.TimeField()
-	# Данные кассира
+	# Данные кассы
 	person_data = models.ForeignKey(OrdinaryCashier)
-	# Действия которые были проведены при операции
-	person_action = models.CharField(max_length = 200)
+	# ФИО кассира проведшего операцию
+	person_surname = models.CharField(max_length = 20)
 	# Список валют в кассе и их баланс
 	money_balance = models.CharField(max_length = 200)
 	# Коментарий к событию
-	action_comment = models.CharField(max_length = 200)
-
-	def __str__(self):
-		return self.person_action
+	# {'action': 'событие типа "Инкасация/Обмен/Пополнение"',
+	# 'changes': {'название валюты': %число на которое изменение было%}
+	# 'comment': 'комментарий к действию од админа'}
+	action = models.CharField(max_length = 200)
