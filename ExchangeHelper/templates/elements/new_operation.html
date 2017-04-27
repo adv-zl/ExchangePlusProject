@@ -1,0 +1,75 @@
+{% block content %}
+    <div align="left">
+        <form  name="new_operation" enctype="multipart/form-data" method="post">
+            {% csrf_token %}
+            <div>
+                <p><b>Выберите тип операции</b></p>
+                <p><input name="operation" type="radio" value="b" checked id="op_buy"> <label for="op_buy">Покупка </label></p>
+                <p><input name="operation" type="radio" value="s" id="op_sell"> <label for="op_sell">Продажа</label></p>
+                <!-- Tab panes -->
+                <!-- Tab panes -->
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane fade in active" id="sell">
+                        <div class="input-group">
+                            <div style="width:315px;" class="input-group-addon val_1_desc">
+                                Введите сумму для покупки(получит покупатель)
+                            </div>
+                            <input class="val_1" name="put_buy_summ" type="number" step="0.01" min="0" style="width:100px; height: 30px">
+                        </div>
+                        <p></p>
+                        <div class="input-group">
+                            <div style="width:315px;" class="input-group-addon cur_1_desc">
+                                Выберите валюту для покупки
+                            </div>
+                            <select class="cur_1" style="width:100px; height: 30px">
+                                <option value="uah">UAH</option>
+                                <option value="usd">USD</option>
+                                <option value="eur">EUR</option>
+                                <option value="rub">RUB</option>
+                                <option value="cad">CAD</option>
+                                <option value="chf">CHF</option>
+                                <option value="gbp">GBP</option>
+                                <option value="pln">PLN</option>
+                            </select>
+                        </div>
+                        <p></p>
+                        <div class="input-group">
+                            <div style="width:315px;" class="input-group-addon cur_2_desc">
+                                Выберите вносимую валюту
+                            </div>
+                            <select class="cur_2" style="width:100px; height: 30px">
+                                <option value="uah">UAH</option>
+                                <option value="usd">USD</option>
+                                <option value="eur">EUR</option>
+                                <option value="rub">RUB</option>
+                                <option value="cad">CAD</option>
+                                <option value="chf">CHF</option>
+                                <option value="gbp">GBP</option>
+                                <option value="pln">PLN</option>
+                            </select>
+                        </div>
+                        <br>
+                        <div class="input-group">
+                            <div style="width:315px;" class="input-group-addon val_2_desc">
+                                Вносимая сумма(заплатит покупатель)
+                            </div>
+                            <input class="val_2" name="get_buy_summ" type="number"
+                                   step="0.01" min="0" style="width:100px; height: 30px"
+                                   disabled>
+                        </div>
+                    </div>
+                    <br>
+                </div>
+                    <br>
+                    <div align="left">
+                        <button type="button" class="btn btn-default" name="check" data-dismiss="modal">
+                            Рассчёт</button>
+                        <button  type="submit" class="btn btn-primary" name="new_operation">
+                            Совершить операцию</button>
+                    </div>
+                </div>
+
+
+    </form>
+    </div>
+{% endblock %}

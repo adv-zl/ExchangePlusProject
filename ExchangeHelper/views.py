@@ -22,8 +22,8 @@ def index(request):
 	if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		role = True
 	else:
-		person = (OrdinaryCashier.objects.filter(user__username =
-												request.user.username))[0]
+		person = (OrdinaryCashier.objects.filter(user__username = request.user.username))
+		person = person[0]
 		exchange_rate = json.loads(person.exchange_rate)
 
 	content = {
@@ -32,8 +32,8 @@ def index(request):
 		'user_menu': 'elements/user_menu.html',
 		'exchange_rate': 'elements/exchange_rate.html',
 		'user_create': 'elements/user_create.html',
+		'new_operation': 'elements/new_operation.html',
 
-		'new_operation_form': 'forms/new_operation_form.html',
 		'encashment': 'forms/encashment_form.html',
 		'support_form': 'forms/support_form.html',
 		'exchange_form': 'forms/exchange_change_form.html',
@@ -69,19 +69,92 @@ def logout(request):
 	return render(request, 'logout.html')
 
 
-# Форма добавления/изменения данных кассы
-def edit_cashbox(request, id):
+# Личный кабинет юзера
+def private(request):
 	# Проверка прав доступа
 	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		return HttpResponseRedirect('/index/')
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
 
-	# Получение определённой кассы
+	# Обработка форм
+	if request.POST:
+		print(request.POST)
+
+	content = {
+		'doc': 'profile.html',
+		'user_create': 'elements/user_create.html',
+		'role': True,
+		'person': request.session['0'],
+	}
+	return render(request, 'base.html', content)
+
+
+# Страница создания новой кассы
+def create(request):
+	# Проверка прав доступа
+	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
+		return HttpResponseRedirect('/index/')
+	if request.user.is_anonymous():
+		return HttpResponseRedirect('/login/')
+	users_list = OrdinaryCashier.objects.all()
+	error = ''
+
+	# Обработка форм
+	if request.POST:
+		user, created = User.objects.get_or_create(username = request.POST['username'],
+													password = request.POST['password'])
+		if not created:
+			error = 'Пользователь с таким именем уже существует.'
+		else:
+			# Создаём нового юзера
+			user.save()
+			# Считываем описание кассы
+			cashier_description_full = request.POST['description_full']
+			cashier_description_short = request.POST['description_short']
+			# Считываем курсы валют
+			exchange_rate = json.dumps({
+				"usd_buy": request.POST['usd_buy'], "usd_sell": request.POST['usd_sell'],
+				"eur_buy": request.POST['eur_buy'], "eur_sell": request.POST['eur_sell'],
+				"rub_buy": request.POST['rub_buy'], "rub_sell": request.POST['rub_sell'],
+				"cad_buy": request.POST['cad_buy'], "cad_sell": request.POST['cad_sell'],
+				"chf_buy": request.POST['chf_buy'], "chf_sell": request.POST['chf_sell'],
+				"gbp_buy": request.POST['gbp_buy'], "gbp_sell": request.POST['gbp_sell'],
+				"pln_buy": request.POST['pln_buy'], "pln_sell": request.POST['pln_sell'],
+			})
+			# Сохраняем данные
+			OrdinaryCashier.objects.create(
+					user = user,
+					cashier_description_full = cashier_description_full,
+					cashier_description_short = cashier_description_short,
+					exchange_rate = exchange_rate
+			).save()
+
+			return HttpResponseRedirect('/index/')
+
+	content = {
+		'doc': 'create_new_cashbox.html',
+		'user_create': 'elements/user_create.html',
+
+		'role': True,
+		'error': error,
+		'users': users_list,
+		'person': request.session['0'],
+	}
+	return render(request, 'base.html', content)
+
+
+# Страница для просмотра касс
+def view_cashbox(request, id):
+	# Проверка прав доступа
+	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
+		return HttpResponseRedirect('/index/')
+	if request.user.is_anonymous():
+		return HttpResponseRedirect('/login/')
+
+	# Получение данных определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
-	person = (OrdinaryCashier.objects.filter(cashier_description_short =
-											certain_cashbox))[0]
-	exchange_rate = json.loads(person.exchange_rate)
+	exchange_rate = json.loads(certain_cashbox.exchange_rate)
 
 	# Обработка форм
 	if request.POST:
@@ -113,57 +186,64 @@ def edit_cashbox(request, id):
 
 	content = {
 		'doc': 'view-cashbox.html',
-		'role': True,
 		'user_menu': 'elements/user_menu.html',
+		'new_operation': 'elements/new_operation.html',
 		'exchange_rate': 'elements/exchange_rate.html',
-		'user_inform': person,
-		'exchange_rate_data': exchange_rate,
-		'person': request.session['0'],
-		'new_operation_form': 'forms/new_operation_form.html',
+
 		'encashment': 'forms/encashment_form.html',
 		'support_form': 'forms/support_form.html',
 		'exchange_form': 'forms/exchange_change_form.html',
-	}
-	return render(request, 'base.html', content)
 
-
-# Личный кабинет юзера
-def private(request):
-	# Проверка прав доступа
-	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
-		return HttpResponseRedirect('/index/')
-	if request.user.is_anonymous():
-		return HttpResponseRedirect('/login/')
-
-	# Обработка форм
-	if request.POST:
-		print(request.POST)
-
-	content = {
-		'doc': 'profile.html',
-		'user_create': 'elements/user_create.html',
 		'role': True,
+		'id': id,
+		'user_inform': certain_cashbox,
+		'exchange_rate_data': exchange_rate,
 		'person': request.session['0'],
 	}
 	return render(request, 'base.html', content)
 
 
-# Страница создания новой кассы
-def create(request):
+# Страница для изменения кассы
+def edit_cashbox(request, id):
+	if request.user.is_anonymous():
+		return HttpResponseRedirect('/login/')
 	# Проверка прав доступа
 	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		return HttpResponseRedirect('/index/')
-	if request.user.is_anonymous():
-		return HttpResponseRedirect('/login/')
 
-	# Обработка форм
+	# Получение определённой кассы
+	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
+	exchange_rate = json.loads(certain_cashbox.exchange_rate)
+
 	if request.POST:
-		print(request.POST)
+		# Считываем курсы валют
+		exchange_rate = json.dumps({
+			"usd_buy": request.POST['usd_buy'], "usd_sell": request.POST['usd_sell'],
+			"eur_buy": request.POST['eur_buy'], "eur_sell": request.POST['eur_sell'],
+			"rub_buy": request.POST['rub_buy'], "rub_sell": request.POST['rub_sell'],
+			"cad_buy": request.POST['cad_buy'], "cad_sell": request.POST['cad_sell'],
+			"chf_buy": request.POST['chf_buy'], "chf_sell": request.POST['chf_sell'],
+			"gbp_buy": request.POST['gbp_buy'], "gbp_sell": request.POST['gbp_sell'],
+			"pln_buy": request.POST['pln_buy'], "pln_sell": request.POST['pln_sell'],
+		})
+		# Сохраняем данные
+		certain_cashbox.user.username = request.POST['username']
+		if request.POST['password']:
+			certain_cashbox.user.password = request.POST['password']
+		certain_cashbox.cashier_description_full = request.POST['description_full']
+		certain_cashbox.cashier_description_short = request.POST['description_short']
+		certain_cashbox.exchange_rate = exchange_rate
+		certain_cashbox.save()
+
+		return HttpResponseRedirect('/index/')
 
 	content = {
-		'doc': 'profile.html',
+		'doc': 'edit_cashbox.html',
 		'user_create': 'elements/user_create.html',
-		'role': True,
+
+		'cashbox_data': certain_cashbox,
+		'exchange_rate_data': exchange_rate,
 		'person': request.session['0'],
+		'role': True,
 	}
 	return render(request, 'base.html', content)

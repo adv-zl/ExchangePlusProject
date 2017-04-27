@@ -29,19 +29,6 @@
                     </div>
                 </li>
             {% endif %}
-            <li>
-                <button style="width:210px;" type="button" class="btn btn-default"
-                        data-toggle="modal" data-target="#NewOperation">
-                    <span class="glyphicon glyphicon-inbox" aria-hidden="true"></span>
-                        Добавить операцию
-                </button>
-                <div class="modal fade" id="NewOperation" tabindex="-1" role="dialog"
-                     aria-labelledby="myModalLabel">
-                    <div class="modal-dialog" role="document">
-                        {% include new_operation_form %}
-                    </div>
-                </div>
-            </li>
         </ul>
     </div>
 {% endblock %}

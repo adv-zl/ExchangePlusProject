@@ -9,96 +9,104 @@
         </div>
         <div class="col-sm-9">
             <div class="panel-body">
-            <h3><strong>{{ user_inform}}</strong></h3>
-            <p></p>
-            <h4>{{ user_inform.cashier_description_full }}</h4>
-            <div class="input-group">
-                <form class="navbar-form navbar-left" role="search">
-                    <div class="form-group">
-                        <input type="date" class="form-control" placeholder="Введите дату">
-                    </div>
-                    <button type="submit" class="btn btn-default">
-                        Поиск
-                    </button>
-                </form>
-            </div>
-            <p></p>
-            <div class="panel panel-default">
-                <!-- Default panel contents -->
-                <div class="panel-heading">Произведённые операции</div>
-                <!-- Table -->
-                <table class="table">
-                    <tr>
-                        <th>№</th>
-                        <th>Дата и время</th>
-                        <th>Коментарий</th>
-                        <th>UAH</th>
-                        <th>USD</th>
-                        <th>EUR</th>
-                        <th>...</th>
-                        <th>...</th>
-                        <th>...</th>
-                        <th>...</th>
-                        <th>...</th>
-                    </tr>
-                    <tr>
-                        <td>0</td>
-                        <td>Остаток на начало дня  2017-04-16 00:00:00</td>
-                        <td>Коментарий</td>
-                        <td>90962.80</td>
-                        <td>4586.00</td>
-                        <td>930.00</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td></td>
-                    </tr>
-                    <tr>
-                        <td>1</td>
-                        <td>2017-04-17 12:10:35</td>
-                        <td>Обменная операция</td>
-                        <td>-1000</td>
-                        <td>500</td>
-                        <td> </td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                    </tr>
-                    <tr>
-                        <td>N</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                    </tr>
-                    <tr>
-                        <td></td>
-                        <td>Остаток на конец дня/Текущий остаток</td>
-                        <td>90862.80</td>
-                        <td>5086.00</td>
-                        <td>930.00</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                        <td>...</td>
-                    </tr>
-                </table>
-            </div>
+                <h3><strong>{{ user_inform}}</strong></h3>
+                    <a href="/edit-cashbox/{{ id }}">
+                        <button style="width: 160px;" type="button" class="btn btn-default" >
+                            <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
+                            Редактировать
+                        </button>
+                    </a>
+                <p></p>
+                <h4>{{ user_inform.cashier_description_full }}</h4>
+                <br>
+                {% include new_operation %}
+                <div class="input-group">
+                    <form class="navbar-form navbar-left" role="search">
+                        <div class="form-group">
+                            <input type="date" class="form-control" placeholder="Введите дату">
+                        </div>
+                        <button type="submit" class="btn btn-default">
+                            Поиск
+                        </button>
+                    </form>
+                </div>
+                <p></p>
+                <div class="panel panel-default">
+                    <!-- Default panel contents -->
+                    <div class="panel-heading">Произведённые операции</div>
+                    <!-- Table -->
+                    <table class="table">
+                        <tr>
+                            <th>№</th>
+                            <th>Дата и время</th>
+                            <th>Коментарий</th>
+                            <th>UAH</th>
+                            <th>USD</th>
+                            <th>EUR</th>
+                            <th>...</th>
+                            <th>...</th>
+                            <th>...</th>
+                            <th>...</th>
+                            <th>...</th>
+                        </tr>
+                        <tr>
+                            <td>0</td>
+                            <td>Остаток на начало дня  2017-04-16 00:00:00</td>
+                            <td>Коментарий</td>
+                            <td>90962.80</td>
+                            <td>4586.00</td>
+                            <td>930.00</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td></td>
+                        </tr>
+                        <tr>
+                            <td>1</td>
+                            <td>2017-04-17 12:10:35</td>
+                            <td>Обменная операция</td>
+                            <td>-1000</td>
+                            <td>500</td>
+                            <td> </td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                        </tr>
+                        <tr>
+                            <td>N</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                        </tr>
+                        <tr>
+                            <td></td>
+                            <td>Остаток на конец дня/Текущий остаток</td>
+                            <td>90862.80</td>
+                            <td>5086.00</td>
+                            <td>930.00</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                            <td>...</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
-</div>
+    </div>
 </div>
 </body>
 {% endblock %}

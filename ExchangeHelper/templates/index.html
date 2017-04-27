@@ -4,8 +4,6 @@
     <div class="row">
         <div class="col-sm-3">
             {% if not role %}
-                {% include user_menu %}
-                <p></p>
                 {% include exchange_rate %}
             {% endif %}
             {% if role %}
@@ -19,6 +17,7 @@
             <h3><strong>{{ user_inform}}</strong></h3>
             <p></p>
             <h4>{{ user_inform.cashier_description_full }}</h4>
+            {% include new_operation %}
             <div class="input-group">
                 <form class="navbar-form navbar-left" role="search">
                     <div class="form-group">
