@@ -1,17 +1,17 @@
 {% block content %}
-    <div class="well bs-sidebar" id="sidebar" style="background-color:#f9f9f9">
-        <ul class="nav nav-pills nav-stacked">
-            {% if role %}
+    {% if role %}
+        <div class="well bs-sidebar" id="sidebar" style="background-color:#f9f9f9">
+            <ul class="nav nav-pills nav-stacked">
                 <li>
                     <a href="/create-cashbox/">
                         <button type="button" style="width: 220px"
                                 class="btn btn-default btn-small">
                             <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                                Создать новую кассу
+                            Создать новую кассу
                         </button>
                     </a>
                 </li>
-            {% endif %}
-        </ul>
-    </div>
+            </ul>
+        </div>
+    {% endif %}
 {% endblock %}

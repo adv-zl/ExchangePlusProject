@@ -17,10 +17,6 @@ def index(request):
 	exchange_rate = ''
 	# ФИО юзера которое он ввёл при входе
 	person = ''
-	# Информация о транзакциях касса
-	transaction_table_data = ''
-	# Список событий
-	actions = []
 	# Администратор или нет
 	role = False
 	if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
@@ -29,20 +25,6 @@ def index(request):
 		person = OrdinaryCashier.objects.filter(user__username = request.user.username)
 		person = person[0]
 		exchange_rate = json.loads(person.exchange_rate)
-
-		transaction_table_data = ExchangeActions.objects.filter(
-									person_data__user__username = request.user.username,
-									operation_date = datetime.date.today()
-									)
-
-		for action in transaction_table_data:
-			actions.append({
-				"action": action,
-				# Получение данных о балансе
-				"money_balance_data": json.loads(str(action.money_balance)),
-				# Получение данных о операциях
-				"actions_data": json.loads(str(action.action)),
-			})
 
 	content = {
 		'doc': 'index.html',
@@ -59,11 +41,9 @@ def index(request):
 
 		'role': role,
 		'users': users_list,
-		'actions': actions,
-		'transaction_table_data': transaction_table_data,
 		'user_inform': person,
 		'exchange_rate_data': exchange_rate,
-		'person': request.session['0'],
+		'surname': request.session['0'],
 	}
 	return render(request, 'base.html', content)
 
@@ -78,7 +58,9 @@ def login(request):
 		user = auth.authenticate(username = username, password = password)
 		if user is not None and user.is_active:
 			auth.login(request, user)
-			return HttpResponseRedirect('/index/')
+			person = OrdinaryCashier.objects.filter(user__username = username)
+			# Перенаправляем на страницу кассы
+			return HttpResponseRedirect('/view-cashbox/{0}'.format(person[0].id))
 		else:
 			return render(request, 'login.html', {'error': 'Неверный логин или пароль!'})
 	return render(request, 'login.html')
@@ -106,7 +88,7 @@ def private(request):
 		'doc': 'profile.html',
 		'user_create': 'elements/user_create.html',
 		'role': True,
-		'person': request.session['0'],
+		'surname': request.session['0'],
 	}
 	return render(request, 'base.html', content)
 
@@ -153,16 +135,17 @@ def create(request):
 		'role': True,
 		'error': error,
 		'users': users_list,
-		'person': request.session['0'],
+		'surname': request.session['0'],
 	}
 	return render(request, 'base.html', content)
 
 
 # Страница для просмотра касс
 def view_cashbox(request, id):
+	role = True
 	# Проверка прав доступа
 	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
-		return HttpResponseRedirect('/index/')
+		role = False
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
 
@@ -180,9 +163,9 @@ def view_cashbox(request, id):
 		'support_form': 'forms/support_form.html',
 		'exchange_form': 'forms/exchange_change_form.html',
 
-		'role': True,
 		'id': id,
-		'person': request.session['0'],
+		'role': role,
+		'surname': request.session['0'],
 	}
 	rest_money_data = None
 	# Получение данных определённой кассы
@@ -253,7 +236,7 @@ def edit_cashbox(request, id):
 
 		'cashbox_data': certain_cashbox,
 		'exchange_rate_data': exchange_rate,
-		'person': request.session['0'],
+		'surname': request.session['0'],
 		'role': True,
 	}
 	return render(request, 'base.html', content)
