@@ -1,0 +1,81 @@
+{% block content %}
+
+    <div class="panel panel-default">
+        <!-- Default panel contents -->
+        <div class="panel-heading">Произведённые операции</div>
+        <!-- Table -->
+        <table class="table">
+            <tr>
+                <th>№</th>
+                <th>Дата и время</th>
+                {% if role %}
+                    <th>Кассир</th>
+                {% endif %}
+                <th>Коментарий</th>
+                <th>UAH</th>
+                <th>USD</th>
+                <th>EUR</th>
+                <th>RUB</th>
+                <th>CAD</th>
+                <th>CHF</th>
+                <th>GBP</th>
+                <th>PLN</th>
+            </tr>
+            <tr>
+                <td></td>
+                <td>Остаток на конец {{ rest_money_data.date }} </td>
+                <td>-</td>
+                <td>-</td>
+                <td>{{ rest_money_data.uah }}</td>
+                <td>{{ rest_money_data.usd }}</td>
+                <td>{{ rest_money_data.eur }}</td>
+                <td>{{ rest_money_data.rub }}</td>
+                <td>{{ rest_money_data.cad }}</td>
+                <td>{{ rest_money_data.chf }}</td>
+                <td>{{ rest_money_data.gbp }}</td>
+                <td>{{ rest_money_data.pln }}</td>
+                <td></td>
+            </tr>
+            {% if actions %}
+                {% for action in actions %}
+                <tr>
+                    <td>{{ action.action.id }}</td>
+                    <td>{{ action.action.operation_date }},
+                        {{ action.action.operation_time }}</td>
+                    {% if role %}
+                        <td>{{ action.action.person_surname }}</td>
+                    {% endif %}
+                    <td>{{ action.actions_data.action}};
+                        <p>{{ action.actions_data.comment}}</p></td>
+                    <td>{{ action.actions_data.changes.uah }}</td>
+                    <td>{{ action.actions_data.changes.usd }}</td>
+                    <td>{{ action.actions_data.changes.eur }}</td>
+                    <td>{{ action.actions_data.changes.rub }}</td>
+                    <td>{{ action.actions_data.changes.cad }}</td>
+                    <td>{{ action.actions_data.changes.chf }}</td>
+                    <td>{{ action.actions_data.changes.gbp }}</td>
+                    <td>{{ action.actions_data.changes.pln }}</td>
+                    <td></td>
+                </tr>
+                {% endfor %}
+                <tr>
+                    <td></td>
+                    <td>Текущий остаток {{ actions[-1].action.operation_date }},
+                        {{ actions[-1].action.operation_time }}</td>
+                    <td>-</td>
+                    <td>-</td>
+                    <td>{{actions[-1].money_balance_data.uah }}</td>
+                    <td>{{ actions[-1].money_balance_data.usd }}</td>
+                    <td>{{ actions[-1].money_balance_data.eur }}</td>
+                    <td>{{ actions[-1].money_balance_data.rub }}</td>
+                    <td>{{ actions[-1].money_balance_data.cad }}</td>
+                    <td>{{ actions[-1].money_balance_data.chf }}</td>
+                    <td>{{ actions[-1].money_balance_data.gbp }}</td>
+                    <td>{{ actions[-1].money_balance_data.pln }}</td>
+                    <td></td>
+                </tr>
+            {% endif %}
+        </table>
+    </div>
+</div>
+{% endblock %}

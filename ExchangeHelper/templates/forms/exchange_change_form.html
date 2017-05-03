@@ -8,7 +8,7 @@
         <div class="modal-body">
             <div align="center">
                 <form  id="exchange_change" enctype="multipart/form-data" method="post">
-                    {% csrf_token %}
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                     <table class="table">
                         <tr>
                             <th>Валюта</th>

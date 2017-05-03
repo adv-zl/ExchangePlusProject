@@ -22,27 +22,25 @@
           <div class="container" align="center">
               <br>
               <form action="" method="post" class="form-inline">
-                  {% csrf_token %}
+                  <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                   <input required type="text" class="form-control" name="surname"
-                         placeholder="Фамилия и инициалы"
-                         value= "{{request.form.username}}">
+                         placeholder="Фамилия и инициалы">
 
                   <input required type="text" class="form-control" name="username"
-                         placeholder="Введите Ваш ЛОГИН"
-                         value= "{{request.form.username}}">
+                         placeholder="Введите Ваш ЛОГИН">
 
                   <input required type="password" class="form-control" name="password"
-                         placeholder="Введите Ваш ПАРОЛЬ"
-                         value="{{request.form.password}}">
+                         placeholder="Введите Ваш ПАРОЛЬ">
                   <p><br>
                   <input class="btn btn-default" type="submit" value="Вход">
                   </p>
               </form>
           </div>
-          <h4><strong><font size="5" color="red"
-                            face="Arial">
-              {{error}}
-          </font></strong></h4>
+          {% if error %}
+              <h4><strong><font size="5" color="red" face="Arial">
+                  {{error}}
+              </font></strong></h4>
+          {% endif %}
       </div>
       {% block footer %}
           <p>{% include 'footer.html' %}</p>

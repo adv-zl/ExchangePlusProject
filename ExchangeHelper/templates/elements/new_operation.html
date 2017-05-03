@@ -1,7 +1,7 @@
 {% block content %}
     <div align="left">
         <form  name="new_operation" enctype="multipart/form-data" method="post">
-            {% csrf_token %}
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <div>
                 <p><b>Выберите тип операции</b></p>
                 <p><input name="operation" type="radio" value="b" checked id="op_buy"> <label for="op_buy">Покупка </label></p>

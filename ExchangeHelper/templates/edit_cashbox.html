@@ -9,7 +9,7 @@
             <h3>Изменение кассы - {{ cashbox_data.cashier_description_short }}:</h3>
             <br>
             <form  name="new_cashbox" enctype="multipart/form-data" method="post">
-                {% csrf_token %}
+                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                     <div class="input-group">
                         <div style="width:200px;" class="input-group-addon">
                             Логин

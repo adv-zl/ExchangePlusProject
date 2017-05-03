@@ -10,7 +10,7 @@
         <div class="modal-body">
             <div align="center">
                 <form  name="support" enctype="multipart/form-data" method="post">
-                    {% csrf_token %}
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                     <div class="input-group">
                         <div style="width:315px;" class="input-group-addon">
                             Введите сумму для зачисления
@@ -24,6 +24,7 @@
                             Выберите валюту
                         </div>
                         <select style="width:100px; height: 30px" name="currency">
+                            <option value="usd">UAH</option>
                             <option value="usd">USD</option>
                             <option value="eur">EUR</option>
                             <option value="rub">RUB</option>

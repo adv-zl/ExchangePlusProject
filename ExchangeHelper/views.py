@@ -3,7 +3,7 @@ from django.contrib import auth
 from django.http import HttpResponseRedirect
 from .models import OrdinaryCashier, ExchangeActions, User
 import json
-# Create your views here.
+import datetime
 
 
 # основная странциа с формами и функционалом
@@ -17,14 +17,32 @@ def index(request):
 	exchange_rate = ''
 	# ФИО юзера которое он ввёл при входе
 	person = ''
+	# Информация о транзакциях касса
+	transaction_table_data = ''
+	# Список событий
+	actions = []
 	# Администратор или нет
 	role = False
 	if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		role = True
 	else:
-		person = (OrdinaryCashier.objects.filter(user__username = request.user.username))
+		person = OrdinaryCashier.objects.filter(user__username = request.user.username)
 		person = person[0]
 		exchange_rate = json.loads(person.exchange_rate)
+
+		transaction_table_data = ExchangeActions.objects.filter(
+									person_data__user__username = request.user.username,
+									operation_date = datetime.date.today()
+									)
+
+		for action in transaction_table_data:
+			actions.append({
+				"action": action,
+				# Получение данных о балансе
+				"money_balance_data": json.loads(str(action.money_balance)),
+				# Получение данных о операциях
+				"actions_data": json.loads(str(action.action)),
+			})
 
 	content = {
 		'doc': 'index.html',
@@ -33,6 +51,7 @@ def index(request):
 		'exchange_rate': 'elements/exchange_rate.html',
 		'user_create': 'elements/user_create.html',
 		'new_operation': 'elements/new_operation.html',
+		'transaction_table': 'elements/transaction_table.html',
 
 		'encashment': 'forms/encashment_form.html',
 		'support_form': 'forms/support_form.html',
@@ -40,6 +59,8 @@ def index(request):
 
 		'role': role,
 		'users': users_list,
+		'actions': actions,
+		'transaction_table_data': transaction_table_data,
 		'user_inform': person,
 		'exchange_rate_data': exchange_rate,
 		'person': request.session['0'],
@@ -97,6 +118,7 @@ def create(request):
 		return HttpResponseRedirect('/index/')
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
+	# Получение списка всех касс
 	users_list = OrdinaryCashier.objects.all()
 	error = ''
 
@@ -113,15 +135,7 @@ def create(request):
 			cashier_description_full = request.POST['description_full']
 			cashier_description_short = request.POST['description_short']
 			# Считываем курсы валют
-			exchange_rate = json.dumps({
-				"usd_buy": request.POST['usd_buy'], "usd_sell": request.POST['usd_sell'],
-				"eur_buy": request.POST['eur_buy'], "eur_sell": request.POST['eur_sell'],
-				"rub_buy": request.POST['rub_buy'], "rub_sell": request.POST['rub_sell'],
-				"cad_buy": request.POST['cad_buy'], "cad_sell": request.POST['cad_sell'],
-				"chf_buy": request.POST['chf_buy'], "chf_sell": request.POST['chf_sell'],
-				"gbp_buy": request.POST['gbp_buy'], "gbp_sell": request.POST['gbp_sell'],
-				"pln_buy": request.POST['pln_buy'], "pln_sell": request.POST['pln_sell'],
-			})
+			exchange_rate = get_exchange_rate(request)
 			# Сохраняем данные
 			OrdinaryCashier.objects.create(
 					user = user,
@@ -152,43 +166,15 @@ def view_cashbox(request, id):
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
 
-	# Получение данных определённой кассы
-	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
-	exchange_rate = json.loads(certain_cashbox.exchange_rate)
-
-	# Обработка форм
-	if request.POST:
-		# Выделяем денежную поддержку кассе
-		if 'support_btn' in request.POST:
-			print('Приша поддержка деньгами')
-		# Отправляем инкассацию
-		elif 'encashment_btn' in request.POST:
-			print(request.POST)
-		# Вносим изменения в курсы валют
-		elif 'exchange_rate_save' in request.POST:
-			certain_cashbox.exchange_rate =\
-			json.dumps({
-				"usd_buy": request.POST['usd_buy'], "usd_sell": request.POST['usd_sell'],
-				"eur_buy": request.POST['eur_buy'], "eur_sell": request.POST['eur_sell'],
-				"rub_buy": request.POST['rub_buy'], "rub_sell": request.POST['rub_sell'],
-				"cad_buy": request.POST['cad_buy'], "cad_sell": request.POST['cad_sell'],
-				"chf_buy": request.POST['chf_buy'], "chf_sell": request.POST['chf_sell'],
-				"gbp_buy": request.POST['gbp_buy'], "gbp_sell": request.POST['gbp_sell'],
-				"pln_buy": request.POST['pln_buy'], "pln_sell": request.POST['pln_sell'],
-			})
-			certain_cashbox.save()
-			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
-		# Добавляем операцию
-		elif 'new_operation' in request.POST:
-			print('Новая операция')
-		else:
-			print('Что-то другое')
-
+	# Список событий
+	actions = []
+	# Контент страницы
 	content = {
 		'doc': 'view-cashbox.html',
 		'user_menu': 'elements/user_menu.html',
 		'new_operation': 'elements/new_operation.html',
 		'exchange_rate': 'elements/exchange_rate.html',
+		'transaction_table': 'elements/transaction_table.html',
 
 		'encashment': 'forms/encashment_form.html',
 		'support_form': 'forms/support_form.html',
@@ -196,10 +182,42 @@ def view_cashbox(request, id):
 
 		'role': True,
 		'id': id,
-		'user_inform': certain_cashbox,
-		'exchange_rate_data': exchange_rate,
 		'person': request.session['0'],
 	}
+	rest_money_data = None
+	# Получение данных определённой кассы
+	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
+	content['user_inform']= certain_cashbox
+	# Получение данных транзакций и сумм валют определённой кассы
+	transaction_table_data = ExchangeActions.objects.filter(person_data__id = id,
+															operation_date = datetime.date.today())
+
+	content['rest_money_data'] = get_rest_money(rest_money_data, id)
+
+	if transaction_table_data:
+		for action in transaction_table_data:
+			actions.append({
+				"action": action,
+				# Получение данных о балансе
+				"money_balance_data": json.loads(str(action.money_balance)),
+				# Получение данных о операциях
+				"actions_data": json.loads(str(action.action)),
+			})
+		content['actions'] = actions
+	# Курсы валют
+	content['exchange_rate_data'] = json.loads(certain_cashbox.exchange_rate)
+
+	# Обработка форм
+	if request.POST:
+		# Вносим изменения в курсы валют
+		if 'exchange_rate_save' in request.POST:
+			certain_cashbox.exchange_rate = get_exchange_rate(request)
+			certain_cashbox.save()
+			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
+		# Добавляем операцию
+		else:
+			count_result_of_action(request, id)
+
 	return render(request, 'base.html', content)
 
 
@@ -217,15 +235,7 @@ def edit_cashbox(request, id):
 
 	if request.POST:
 		# Считываем курсы валют
-		exchange_rate = json.dumps({
-			"usd_buy": request.POST['usd_buy'], "usd_sell": request.POST['usd_sell'],
-			"eur_buy": request.POST['eur_buy'], "eur_sell": request.POST['eur_sell'],
-			"rub_buy": request.POST['rub_buy'], "rub_sell": request.POST['rub_sell'],
-			"cad_buy": request.POST['cad_buy'], "cad_sell": request.POST['cad_sell'],
-			"chf_buy": request.POST['chf_buy'], "chf_sell": request.POST['chf_sell'],
-			"gbp_buy": request.POST['gbp_buy'], "gbp_sell": request.POST['gbp_sell'],
-			"pln_buy": request.POST['pln_buy'], "pln_sell": request.POST['pln_sell'],
-		})
+		exchange_rate = get_exchange_rate(request)
 		# Сохраняем данные
 		certain_cashbox.user.username = request.POST['username']
 		if request.POST['password']:
@@ -247,3 +257,45 @@ def edit_cashbox(request, id):
 		'role': True,
 	}
 	return render(request, 'base.html', content)
+
+
+# Получаем значения курсов валют со страницы
+def get_exchange_rate(request):
+	return json.dumps({
+				"usd_buy": request.POST['usd_buy'], "usd_sell": request.POST['usd_sell'],
+				"eur_buy": request.POST['eur_buy'], "eur_sell": request.POST['eur_sell'],
+				"rub_buy": request.POST['rub_buy'], "rub_sell": request.POST['rub_sell'],
+				"cad_buy": request.POST['cad_buy'], "cad_sell": request.POST['cad_sell'],
+				"chf_buy": request.POST['chf_buy'], "chf_sell": request.POST['chf_sell'],
+				"gbp_buy": request.POST['gbp_buy'], "gbp_sell": request.POST['gbp_sell'],
+				"pln_buy": request.POST['pln_buy'], "pln_sell": request.POST['pln_sell'],
+			})
+
+
+# Обработчик действий администратора
+def count_result_of_action(request, cashbox_id):
+	# Выделяем денежную поддержку кассе
+	if 'support_btn' in request.POST:
+		action = 'Increase'
+		print('Приша поддержка деньгами')
+	# Отправляем инкассацию
+	elif 'encashment_btn' in request.POST:
+		action = 'Encashment'
+		print('Приша инкассация')
+	elif 'new_operation' in request.POST:
+		action = 'Exchange'
+		print('Новая операция')
+
+
+# Получение информации о балансе за прошлый день
+def get_rest_money(rest_money_data, id):
+	date = datetime.date.today()
+	# Если данных за сегодня нет - получаем данные за вчерашний день, о сумме валюте
+	while not rest_money_data:
+		date = date.replace(day = date.day - 1)
+		rest_money_data = ExchangeActions.objects.filter(person_data__id = id,
+														operation_date = date)
+	# Получение информации о балансе за прошлый день
+	rest_money_data = json.loads(str(rest_money_data[0].money_balance))
+	rest_money_data['date'] = date
+	return rest_money_data
