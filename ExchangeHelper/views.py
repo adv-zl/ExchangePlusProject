@@ -4,6 +4,7 @@ from django.http import HttpResponseRedirect
 from .models import OrdinaryCashier, ExchangeActions, User
 import json
 import datetime
+import re
 
 
 # основная странциа с формами и функционалом
@@ -257,16 +258,21 @@ def get_exchange_rate(request):
 
 # Обработчик действий администратора
 def count_result_of_action(request, cashbox_id):
+	result = {}
 	# Выделяем денежную поддержку кассе
 	if 'support_btn' in request.POST:
-		action = 'Increase'
-		print('Приша поддержка деньгами')
+		result["action"] = 'Increase'
+		result["changes"] = {request.POST['currency']: request.POST['support_summ']}
+		result["comment"] = re.sub(r'\s+', ' ', request.POST['comment'])
+		print(result)
 	# Отправляем инкассацию
 	elif 'encashment_btn' in request.POST:
-		action = 'Encashment'
-		print('Приша инкассация')
+		result["action"] = 'Encashment'
+		result["changes"] = {request.POST['currency']: request.POST['encashment_summ']}
+		result["comment"] = re.sub(r'\s+', ' ', request.POST['comment'])
+		print(result)
 	elif 'new_operation' in request.POST:
-		action = 'Exchange'
+		result["action"] = 'Exchange'
 		print('Новая операция')
 
 
