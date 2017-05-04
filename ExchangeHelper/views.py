@@ -112,6 +112,7 @@ def create(request):
 		if not created:
 			error = 'Пользователь с таким именем уже существует.'
 		else:
+			date = datetime.date.today()
 			# Создаём нового юзера
 			user.save()
 			# Считываем описание кассы
@@ -125,6 +126,37 @@ def create(request):
 					cashier_description_full = cashier_description_full,
 					cashier_description_short = cashier_description_short,
 					exchange_rate = exchange_rate
+			).save()
+			# Создаём операцию по выделению денег новой кассе
+			ExchangeActions.objects.create(
+					operation_date = date.replace(day = date.day - 1),
+					operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+					person_data = get_object_or_404(OrdinaryCashier, user = user),
+					person_surname = request.session['0'],
+					money_balance = json.dumps({
+												"uah": 0,
+												"usd": 0,
+												"eur": 0,
+												"rub": 0,
+												"cad": 0,
+												"chf": 0,
+												"gbp": 0,
+												"pln": 0
+											}),
+					action = json.dumps({
+										"action": "Новая касса",
+										"changes": {
+													"uah": 0,
+													"usd": 0,
+													"eur": 0,
+													"rub": 0,
+													"cad": 0,
+													"chf": 0,
+													"gbp": 0,
+													"pln": 0
+													},
+										"comment": "Нчальный баланс"
+									})
 			).save()
 
 			return HttpResponseRedirect('/index/')
@@ -257,7 +289,7 @@ def get_exchange_rate(request):
 			})
 
 
-# Обработчик действий администратора
+# Обработчик действий выдачи средств/инкассации и операций обмена
 def count_result_of_action(request, cashbox_id):
 	result = {}
 	# Выделяем денежную поддержку кассе

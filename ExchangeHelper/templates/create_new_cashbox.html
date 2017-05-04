@@ -19,7 +19,7 @@
         </div>
         <div class="col-sm-9">
             <h3>Для создания кассы заполните <strong>все</strong> поля:</h3>
-            {{ error }}
+            <h2>{{ error }}</h2>
             <br>
             <form  name="new_cashbox" enctype="multipart/form-data" method="post">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
@@ -69,78 +69,78 @@
                         <tr>
                             <td>USD</td>
                             <td>
-                                <input required name="usd_buy" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="usd_buy" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                             <td>
-                                <input required name="usd_sell" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="usd_sell" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                         </tr>
                         <tr>
                             <td>EUR</td>
                             <td>
-                                <input required name="eur_buy" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="eur_buy" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                             <td>
-                                <input required name="eur_sell" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="eur_sell" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                         </tr>
                         <tr>
                             <td>RUB</td>
                             <td>
-                                <input required name="rub_buy" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="rub_buy" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                             <td>
-                                <input required name="rub_sell" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="rub_sell" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                         </tr>
                         <tr>
                             <td>CAD</td>
                             <td>
-                                <input required name="cad_buy" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="cad_buy" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                             <td>
-                                <input required name="cad_sell" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="cad_sell" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                         </tr>
                         <tr>
                             <td>CHF</td>
                             <td>
-                                <input required name="chf_buy" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="chf_buy" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                             <td>
-                                <input required name="chf_sell" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="chf_sell" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                         </tr>
                         <tr>
                             <td>GBP</td>
                             <td>
-                                <input required name="gbp_buy" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="gbp_buy" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                             <td>
-                                <input required name="gbp_sell" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="gbp_sell" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                         </tr>
                         <tr>
                             <td>PLN</td>
                             <td>
-                                <input required name="pln_buy" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="pln_buy" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                             <td>
-                                <input required name="pln_sell" type="number" step="0.01"
-                                       min="0" style="width:100px; height: 30px">
+                                <input required value="0" name="pln_sell" type="number"
+                                       step="0.01" min="0" style="width:100px; height: 30px">
                             </td>
                         </tr>
                     </table>
