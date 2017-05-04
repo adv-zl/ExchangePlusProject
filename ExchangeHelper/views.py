@@ -83,7 +83,7 @@ def private(request):
 
 	# Обработка форм
 	if request.POST:
-		print(request.POST)
+		pass
 
 	content = {
 		'doc': 'profile.html',
@@ -201,6 +201,7 @@ def view_cashbox(request, id):
 		# Добавляем операцию
 		else:
 			count_result_of_action(request, id)
+			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
 
 	return render(request, 'base.html', content)
 
@@ -264,16 +265,32 @@ def count_result_of_action(request, cashbox_id):
 		result["action"] = 'Increase'
 		result["changes"] = {request.POST['currency']: request.POST['support_summ']}
 		result["comment"] = re.sub(r'\s+', ' ', request.POST['comment'])
-		print(result)
+		# Производим изменение баланса денег
+		money_balance = change_money_balance(result, cashbox_id)
+		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
+		ExchangeActions.objects.create(
+				operation_date = datetime.date.today(),
+				operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+				person_data = cashier,
+				person_surname = request.session['0'],
+				money_balance = json.dumps(money_balance),
+				action = json.dumps(result)
+		).save()
 	# Отправляем инкассацию
 	elif 'encashment_btn' in request.POST:
 		result["action"] = 'Encashment'
 		result["changes"] = {request.POST['currency']: request.POST['encashment_summ']}
 		result["comment"] = re.sub(r'\s+', ' ', request.POST['comment'])
-		print(result)
+		ExchangeActions.objects.create(
+				operation_date = datetime.date.today(),
+				operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+				person_data = cashbox_id,
+				person_surnname = request.session['0'],
+				money_balance = '',
+				action = result
+		).save()
 	elif 'new_operation' in request.POST:
 		result["action"] = 'Exchange'
-		print('Новая операция')
 
 
 # Получение информации о балансе за прошлый день
@@ -288,3 +305,26 @@ def get_rest_money(rest_money_data, id):
 	rest_money_data = json.loads(str(rest_money_data[0].money_balance))
 	rest_money_data['date'] = date
 	return rest_money_data
+
+
+# Изменение баланса денег в зависимости от действий юзера
+def change_money_balance(exchange_action, cashbox_id):
+	# Получение последнего актуального баланса денег в кассе
+	money_balance = json.loads(ExchangeActions.objects.filter(
+														person_data__id = cashbox_id
+														).order_by('-id')[0].money_balance
+								)
+	for key in exchange_action["changes"].keys():
+		if exchange_action["action"] == 'Increase':
+			# Вносим изменения в сумму определённой валюты
+			money_balance[key] = float(money_balance[key]) + float(exchange_action["changes"][key])
+		elif exchange_action["action"] == 'Encashment':
+			# TODO Доработать обработку инкассаций
+			pass
+		elif exchange_action["action"] == 'Exchange':
+			# TODO Доработать обработку обменных операций
+			pass
+		else:
+			print("*** НЕИЗВЕСТНАЯ ОПЕРАЦИЯ ***")
+
+	return money_balance
