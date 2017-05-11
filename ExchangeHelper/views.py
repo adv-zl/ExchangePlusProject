@@ -49,6 +49,8 @@ def index(request):
 	return render(request, 'base.html', content)
 
 
+# Главная страница с кратким описание проекта
+
 # Форма входа юзера
 def login(request):
 	if request.POST:

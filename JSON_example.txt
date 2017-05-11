@@ -1,0 +1,39 @@
+Курсы валют
+{
+    "usd_buy": 26.5, "usd_sell": 26.9, 
+    "eur_buy": 28.3, "eur_sell": 28.65, 
+    "rub_buy": 0.46, "rub_sell": 0.47, 
+    "cad_buy": 0, "cad_sell": 0, 
+    "chf_buy": 0, "chf_sell": 0, 
+    "gbp_buy": 32.5, "gbp_sell": 34, 
+    "pln_buy": 6.3, "pln_sell": 7 
+}
+
+Баланс средств
+{
+    "uah": 0,
+    "usd": 0,
+    "eur": 0,
+    "rub": 0,
+    "cad": 0,
+    "chf": 0,
+    "gbp": 0,
+    "pln": 0,
+}
+
+Действия
+{
+    "action": "Encashment / Exchange / Increase", - Инкасация/Обмен/Пополнение
+    "changes": 
+        {
+            "uah": 0,
+            "usd": 0,
+            "eur": 0,
+            "rub": 0,
+            "cad": 0,
+            "chf": 0,
+            "gbp": 0,
+            "pln": 0,
+        }
+    "comment": ''
+}
