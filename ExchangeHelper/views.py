@@ -50,9 +50,23 @@ def index(request):
 
 
 # Главная страница с кратким описание проекта
+def home(request):
+	content = {
+		'doc': 'home.html',
+	}
+	if not request.user.is_anonymous():
+		content['surname'] = request.session['0']
+		if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
+			content['role'] = True
+
+	return render(request, 'base.html', content)
+
 
 # Форма входа юзера
 def login(request):
+	content = {
+		'doc': 'login.html',
+	}
 	if request.POST:
 		username = request.POST['username']
 		password = request.POST['password']
@@ -65,14 +79,18 @@ def login(request):
 			# Перенаправляем на страницу кассы
 			return HttpResponseRedirect('/view-cashbox/{0}'.format(person[0].id))
 		else:
-			return render(request, 'login.html', {'error': 'Неверный логин или пароль!'})
-	return render(request, 'login.html')
+			content['error'] = 'Неверный логин или пароль!'
+			return render(request, 'base.html', content)
+	return render(request, 'base.html', content)
 
 
 def logout(request):
 	auth.logout(request)
 	request.session = ''
-	return render(request, 'logout.html')
+	content = {
+		'doc': 'logout.html',
+	}
+	return render(request, 'base.html', content)
 
 
 # Личный кабинет юзера

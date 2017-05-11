@@ -3,7 +3,7 @@
   <div class="container-fluid">
       <!-- Brand and toggle get grouped for better mobile display -->
       <div class="navbar-header">
-          <a class="navbar-brand" href="/index">
+          <a class="navbar-brand" href="/index" title="Переход к рабочему месту">
               <img style="max-width:60px; margin-top: -22px;"
                    src="/static/image/logo.svg" alt="Index page">
           </a>
@@ -13,7 +13,7 @@
           {% if role %}
           <ul class="nav navbar-nav">
               <li role="presentation" class="active">
-                  <a href="/private">
+                  <a href="/private" title="Переход в личный кабинет" style="margin-right: 10px;">
                       <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
                       Личный кабинет
                       <span class="badge">99</span>
@@ -21,25 +21,46 @@
               </li>
           </ul>
           {% endif %}
-          <ul class="nav navbar-nav">
-              <li role="presentation" class="active">
-                  <span class="glyphicon glyphicon-hand-right" aria-hidden="true"></span>
-                  <label style="margin-top: 15px">Добро пожаловать,
-                      {{ surname }}!</label>
 
-              </li>
-          </ul>
+          {% if surname %}
+              <ul class="nav navbar-nav">
+                  <li role="presentation" class="active">
+                      <span class="glyphicon glyphicon-hand-right" aria-hidden="true"></span>
+                      <label style="margin-top: 15px">Добро пожаловать,
+                          {{ surname }}!</label>
+                  </li>
+              </ul>
+              <ul class="nav navbar-nav navbar-right">
+                  <a href="/logout" title="Выход из системы">
+                      <p></p>
+                      <button style="width: 100px;" type="button" class="btn btn-default" >
+                          <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
+                          Выход
+                      </button>
+                  </a>
+              </ul>
+          {% endif %}
+          {% if not surname %}
+              <ul class="nav navbar-nav navbar-right">
+                  <a href="/login">
+                      <p></p>
+                      <button style="width: 100px;" type="button" class="btn btn-default" >
+                          <span class="glyphicon glyphicon-ok-circle" aria-hidden="true"></span>
+                          Вход
+                      </button>
+                  </a>
+              </ul>
+          {% endif %}
           <ul class="nav navbar-nav navbar-right">
-              <a href="/logout">
+              <a href="/home" title="Переход на главную страницу">
                   <p></p>
-                  <button style="width: 160px;" type="button" class="btn btn-default" >
-                      <span class="glyphicon glyphicon-remove-circle" aria-hidden="true"></span>
-                      Выход из системы
+                  <button style="width: 200px;margin-right: 15px;" type="button" class="btn btn-default" >
+                      <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
+                      На главную страницу
                   </button>
               </a>
           </ul>
       </div><!-- /.navbar-collapse -->
   </div><!-- /.container-fluid -->
 </nav>
-
 {% endblock %}

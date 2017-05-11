@@ -1,21 +1,4 @@
-<html>
-        <header>
-            <link href="/static/bootstrap/css/bootstrap.css" type="text/css" rel="stylesheet">
-            <script type="text/javascript" src="/static/bootstrap/js/bootstrap.js"></script>
-            <title>Money Exchange Helper</title>
-            <nav class="navbar navbar-default">
-                <div class="container-fluid">
-                    <!-- Brand and toggle get grouped for better mobile display -->
-                    <div class="navbar-header">
-                        <a class="navbar-brand" href="/index">
-                            <img style="max-width:60px; margin-top: -22px;"
-                                 src="/static/image/logo.svg" alt="Index page">
-                        </a>
-                    </div>
-                </div><!-- /.container-fluid -->
-            </nav>
-        </header>
-    <body>
+{% block content %}
       <div align="center"  class="panel panel-default">
           <!-- Default panel contents -->
           <div class="panel-heading">Login form</div>
@@ -42,8 +25,4 @@
               </font></strong></h4>
           {% endif %}
       </div>
-      {% block footer %}
-          <p>{% include 'footer.html' %}</p>
-      {% endblock %}
-  </body>
-</html>
+{% endblock %}
