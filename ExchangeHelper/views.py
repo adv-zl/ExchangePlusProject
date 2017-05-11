@@ -311,15 +311,18 @@ def count_result_of_action(request, cashbox_id):
 	# Отправляем инкассацию
 	elif 'encashment_btn' in request.POST:
 		result["action"] = 'Encashment'
-		result["changes"] = {request.POST['currency']: request.POST['encashment_summ']}
+		result["changes"] = {request.POST['currency']: '-'+request.POST['encashment_summ']}
 		result["comment"] = re.sub(r'\s+', ' ', request.POST['comment'])
+		# Производим изменение баланса денег
+		money_balance = change_money_balance(result, cashbox_id)
+		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 		ExchangeActions.objects.create(
 				operation_date = datetime.date.today(),
 				operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
-				person_data = cashbox_id,
-				person_surnname = request.session['0'],
-				money_balance = '',
-				action = result
+				person_data = cashier,
+				person_surname = request.session['0'],
+				money_balance = json.dumps(money_balance),
+				action = json.dumps(result)
 		).save()
 	elif 'new_operation' in request.POST:
 		result["action"] = 'Exchange'
@@ -331,10 +334,14 @@ def get_rest_money(rest_money_data, id):
 	# Если данных за сегодня нет - получаем данные за вчерашний день, о сумме валюте
 	while not rest_money_data:
 		date = date.replace(day = date.day - 1)
-		rest_money_data = ExchangeActions.objects.filter(person_data__id = id,
-														operation_date = date)
+		try:
+			rest_money_data = ExchangeActions.objects.filter(person_data__id = id,
+															operation_date = date
+															).order_by('-id')[0]
+		except:
+			pass
 	# Получение информации о балансе за прошлый день
-	rest_money_data = json.loads(str(rest_money_data[0].money_balance))
+	rest_money_data = json.loads(str(rest_money_data.money_balance))
 	rest_money_data['date'] = date
 	return rest_money_data
 
@@ -351,8 +358,8 @@ def change_money_balance(exchange_action, cashbox_id):
 			# Вносим изменения в сумму определённой валюты
 			money_balance[key] = float(money_balance[key]) + float(exchange_action["changes"][key])
 		elif exchange_action["action"] == 'Encashment':
-			# TODO Доработать обработку инкассаций
-			pass
+			# Вносим изменения в сумму определённой валюты
+			money_balance[key] = (float(money_balance[key]) + float(exchange_action["changes"][key]))
 		elif exchange_action["action"] == 'Exchange':
 			# TODO Доработать обработку обменных операций
 			pass

@@ -20,12 +20,15 @@
                 <th>CHF</th>
                 <th>GBP</th>
                 <th>PLN</th>
+                <th>Удаление</th>
             </tr>
             <tr>
                 <td></td>
-                <td>Остаток на конец {{ rest_money_data.date }} </td>
+                <td>Остаток на <p>{{ rest_money_data.date }}</p></td>
                 <td>-</td>
-                <td>-</td>
+                {% if role %}
+                    <td>-</td>
+                {% endif %}
                 <td>{{ rest_money_data.uah }}</td>
                 <td>{{ rest_money_data.usd }}</td>
                 <td>{{ rest_money_data.eur }}</td>
@@ -34,7 +37,7 @@
                 <td>{{ rest_money_data.chf }}</td>
                 <td>{{ rest_money_data.gbp }}</td>
                 <td>{{ rest_money_data.pln }}</td>
-                <td></td>
+                <td>-</td>
             </tr>
             {% if actions %}
                 {% for action in actions %}
@@ -55,7 +58,15 @@
                     <td>{{ action.actions_data.changes.chf or '-' }}</td>
                     <td>{{ action.actions_data.changes.gbp or '-' }}</td>
                     <td>{{ action.actions_data.changes.pln or '-' }}</td>
-                    <td></td>
+                    {% if role %}
+                        <td>
+                            <button style="width: 90px;" type="submit" class="btn btn-default"
+                                    name="delete_operation" value="{{ action.action.id }}">
+                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                Удалить
+                            </button>
+                        </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
                 <tr>
@@ -63,7 +74,9 @@
                     <td>Текущий остаток {{ actions[-1].action.operation_date }},
                         {{ actions[-1].action.operation_time }}</td>
                     <td>-</td>
-                    <td>-</td>
+                    {% if role %}
+                        <td>-</td>
+                    {% endif %}
                     <td>{{actions[-1].money_balance_data.uah }}</td>
                     <td>{{ actions[-1].money_balance_data.usd }}</td>
                     <td>{{ actions[-1].money_balance_data.eur }}</td>

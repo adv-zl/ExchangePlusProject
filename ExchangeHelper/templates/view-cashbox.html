@@ -10,12 +10,14 @@
         <div class="col-sm-9">
             <div class="panel-body">
                 <h3><strong>{{ user_inform}}</strong></h3>
+                {% if role %}
                     <a href="/edit-cashbox/{{ id }}">
                         <button style="width: 160px;" type="button" class="btn btn-default" >
                             <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
                             Редактировать
                         </button>
                     </a>
+                {% endif %}
                 <p></p>
                 <h4>{{ user_inform.cashier_description_full }}</h4>
                 <br>
