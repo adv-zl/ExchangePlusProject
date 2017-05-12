@@ -62,6 +62,18 @@ def home(request):
 	return render(request, 'base.html', content)
 
 
+# Главная страница с кратким описание проекта
+def wiki(request):
+	content = {
+		'doc': 'wiki.html',
+	}
+	if not request.user.is_anonymous():
+		content['surname'] = request.session['0']
+		if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
+			content['role'] = True
+
+	return render(request, 'base.html', content)
+
 # Форма входа юзера
 def login(request):
 	content = {
