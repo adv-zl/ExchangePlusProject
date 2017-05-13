@@ -68,3 +68,6 @@ class AdministratorCashCosts(models.Model):
 
 	def __str__(self):
 		return self.waste_reason
+
+
+# Оповещения для кассиров

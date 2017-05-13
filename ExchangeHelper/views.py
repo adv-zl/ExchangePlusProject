@@ -106,6 +106,7 @@ def logout(request):
 
 # Личный кабинет юзера
 def private(request):
+	# TODO дорабтать работу с записками добавить их удаление
 	# Проверка прав доступа
 	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		return HttpResponseRedirect('/index/')
@@ -114,12 +115,13 @@ def private(request):
 	# ПОлучение списка всех записок
 	admin_messages = len(AdministratorCashCosts.objects.all())
 	# Получение списка записок/трат
-	waste_list = AdministratorCashCosts.objects.all()
+	waste_list = AdministratorCashCosts.objects.all().order_by('-id')
 	if not waste_list:
 		waste_list = None
 
 	# Обработка форм
 	if request.POST:
+		# добавление записи
 		if 'wasting_money_btn' in request.POST:
 			AdministratorCashCosts(
 					waste_cashbox = OrdinaryCashier.objects.get(user__username = request.user.username),
@@ -131,6 +133,10 @@ def private(request):
 					waste_date = datetime.date.today(),
 					waste_time = datetime.datetime.now().strftime("%H:%M:%S"),
 			).save()
+			return HttpResponseRedirect('/private/')
+		# удаление записи
+		elif 'delete_waste' in request.POST:
+			AdministratorCashCosts.objects.get(id = request.POST['delete_waste']).delete()
 			return HttpResponseRedirect('/private/')
 
 	content = {
@@ -395,7 +401,7 @@ def count_result_of_action(request, cashbox_id):
 		print(request.POST)
 	# Удаление операции
 	elif 'delete_operation' in request.POST:
-		# TODO удаление операций начисления и обмена валют
+		# TODO удаление операций обмена валют
 		# Получение последнего актуального баланса денег в кассе
 		money_balance = json.loads(ExchangeActions.objects.filter(
 														person_data__id = cashbox_id

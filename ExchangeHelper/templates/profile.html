@@ -22,6 +22,14 @@
                             <p><u>Тема/причина траты</u>: {{ element.waste_reason }}
                             <p><u>Сумма и валюта</u>: {{ element.waste_summ }} - {{ element.waste_currency }}
                             <p><u>Коментарий к операции</u>: {{ element.waste_comment }}
+                            <form  name="encashment_form" enctype="multipart/form-data" method="post">
+                                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                <button style="width: 150px;" type="submit" class="btn btn-default"
+                                        name="delete_waste" value="{{ element.id }}">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                    Удалить запись
+                                </button>
+                            </form>
                             <hr>
                         {% endfor %}
                     {% endif %}
