@@ -157,13 +157,13 @@ def create(request):
 
 	# Обработка форм
 	if request.POST:
-		user, created = User.objects.get_or_create(username = request.POST['username'],
-													password = request.POST['password'],)
+		user, created = User.objects.get_or_create(username = request.POST['username'])
 		if not created:
 			error = 'Пользователь с таким именем уже существует.'
 		else:
 			date = datetime.date.today()
 			# Создаём нового юзера
+			user.set_password(request.POST['password'])
 			user.save()
 			# Считываем описание кассы
 			cashier_description_full = request.POST['description_full']
@@ -302,6 +302,7 @@ def view_cashbox(request, id):
 
 # Страница для изменения кассы
 def edit_cashbox(request, id):
+	# TODO Внести изменения в редактирования пароля касс т.к. не изменяет его
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
 	# Проверка прав доступа
@@ -319,7 +320,7 @@ def edit_cashbox(request, id):
 		# Сохраняем данные
 		certain_cashbox.user.username = request.POST['username']
 		if request.POST['password']:
-			certain_cashbox.user.password = request.POST['password']
+			certain_cashbox.user.set_password(request.POST['password'])
 		certain_cashbox.cashier_description_full = request.POST['description_full']
 		certain_cashbox.cashier_description_short = request.POST['description_short']
 		certain_cashbox.exchange_rate = exchange_rate
@@ -430,7 +431,29 @@ def count_result_of_action(request, cashbox_id):
 			).save()
 		# Если было выделение денег
 		elif json.loads(deleted_action.action)['action'] == 'Increase':
-			pass
+			# парсинг результата действия
+			for key in json.loads(deleted_action.action)["changes"].keys():
+				# Запись информации о валюте/сумме которую изменяем
+				result["changes"] = {
+					key: -(float(json.loads(deleted_action.action)['changes'][key])),
+				}
+				money_balance[key] = float(money_balance[key]) - float(json.loads(deleted_action.action)['changes'][key])
+			result["action"] = 'Encashment'
+			result["comment"] = "Удаление операции №{0} от {1}".format(
+					deleted_action.id,
+					deleted_action.operation_time
+			)
+			# Получение денежного баланса
+			money_balance = change_money_balance(result, cashbox_id)
+			# Создание новой операции
+			ExchangeActions(
+					operation_date = datetime.date.today(),
+					operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+					person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
+					person_surname = request.session['0'],
+					money_balance = json.dumps(money_balance),
+					action = json.dumps(result)
+			).save()
 		# Если была обменная операция
 		elif json.loads(deleted_action.action)['action'] == 'Exchange':
 			pass
