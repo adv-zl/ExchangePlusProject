@@ -16,7 +16,9 @@
                   <a href="/private" title="Переход в личный кабинет" style="margin-right: 10px;">
                       <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
                       Личный кабинет
-                      <span class="badge">99</span>
+                      {% if admin_messages %}
+                          <span class="badge">{{ admin_messages }}</span>
+                      {% endif %}
                   </a>
               </li>
           </ul>
@@ -63,9 +65,10 @@
           <ul class="nav navbar-nav navbar-right">
               <a href="/home" title="Переход на главную страницу">
                   <p></p>
-                  <button style="width: 200px;margin-right: 10px;" type="button" class="btn btn-default" >
+                  <button style="width: 160px;margin-right: 10px;" type="button"
+                          class="btn btn-default" >
                       <span class="glyphicon glyphicon-home" aria-hidden="true"></span>
-                      На главную страницу
+                      Главная страница
                   </button>
               </a>
           </ul>

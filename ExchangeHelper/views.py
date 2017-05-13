@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import auth
 from django.http import HttpResponseRedirect
-from .models import OrdinaryCashier, ExchangeActions, User
+from .models import AdministratorCashCosts, OrdinaryCashier, ExchangeActions, User
 import json
 import datetime
 import re
@@ -20,8 +20,11 @@ def index(request):
 	person = ''
 	# Администратор или нет
 	role = False
+	admin_messages = ''
 	if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		role = True
+		# ПОлучение списка всех записок
+		admin_messages = len(AdministratorCashCosts.objects.all())
 	else:
 		person = OrdinaryCashier.objects.filter(user__username = request.user.username)
 		person = person[0]
@@ -30,21 +33,12 @@ def index(request):
 	content = {
 		'doc': 'index.html',
 
-		'user_menu': 'elements/user_menu.html',
-		'exchange_rate': 'elements/exchange_rate.html',
-		'user_create': 'elements/user_create.html',
-		'new_operation': 'elements/new_operation.html',
-		'transaction_table': 'elements/transaction_table.html',
-
-		'encashment': 'forms/encashment_form.html',
-		'support_form': 'forms/support_form.html',
-		'exchange_form': 'forms/exchange_change_form.html',
-
 		'role': role,
 		'users': users_list,
 		'user_inform': person,
 		'exchange_rate_data': exchange_rate,
 		'surname': request.session['0'],
+		'admin_messages': admin_messages,
 	}
 	return render(request, 'base.html', content)
 
@@ -55,7 +49,9 @@ def home(request):
 		'doc': 'home.html',
 	}
 	if not request.user.is_anonymous():
-		content['surname'] = request.session['0']
+		content['surname'] = 'Аноним'
+		if request.session['0']:
+			content['surname'] = request.session['0']
 		if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 			content['role'] = True
 
@@ -68,11 +64,14 @@ def wiki(request):
 		'doc': 'wiki.html',
 	}
 	if not request.user.is_anonymous():
-		content['surname'] = request.session['0']
+		content['surname'] = 'Аноним'
+		if request.session['0']:
+			content['surname'] = request.session['0']
 		if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 			content['role'] = True
 
 	return render(request, 'base.html', content)
+
 
 # Форма входа юзера
 def login(request):
@@ -112,16 +111,35 @@ def private(request):
 		return HttpResponseRedirect('/index/')
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
+	# ПОлучение списка всех записок
+	admin_messages = len(AdministratorCashCosts.objects.all())
+	# Получение списка записок/трат
+	waste_list = AdministratorCashCosts.objects.all()
+	if not waste_list:
+		waste_list = None
 
 	# Обработка форм
 	if request.POST:
-		pass
+		if 'wasting_money_btn' in request.POST:
+			AdministratorCashCosts(
+					waste_cashbox = OrdinaryCashier.objects.get(user__username = request.user.username),
+					waste_author = request.session['0'],
+					waste_reason = request.POST['wasting_reason'],
+					waste_summ = request.POST['wasting_summ'],
+					waste_currency = request.POST['currency'],
+					waste_comment = re.sub(r'\s+', ' ', request.POST['comment']),
+					waste_date = datetime.date.today(),
+					waste_time = datetime.datetime.now().strftime("%H:%M:%S"),
+			).save()
+			return HttpResponseRedirect('/private/')
 
 	content = {
 		'doc': 'profile.html',
-		'user_create': 'elements/user_create.html',
+
 		'role': True,
+		'waste_list': waste_list,
 		'surname': request.session['0'],
+		'admin_messages': admin_messages
 	}
 	return render(request, 'base.html', content)
 
@@ -140,7 +158,7 @@ def create(request):
 	# Обработка форм
 	if request.POST:
 		user, created = User.objects.get_or_create(username = request.POST['username'],
-													password = request.POST['password'])
+													password = request.POST['password'],)
 		if not created:
 			error = 'Пользователь с таким именем уже существует.'
 		else:
@@ -195,7 +213,6 @@ def create(request):
 
 	content = {
 		'doc': 'create_new_cashbox.html',
-		'user_create': 'elements/user_create.html',
 
 		'role': True,
 		'error': error,
@@ -213,29 +230,24 @@ def view_cashbox(request, id):
 		role = False
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
+	# ПОлучение списка всех записок
+	admin_messages = len(AdministratorCashCosts.objects.all())
 
 	# Список событий
 	actions = []
 	# Контент страницы
 	content = {
 		'doc': 'view-cashbox.html',
-		'user_menu': 'elements/user_menu.html',
-		'new_operation': 'elements/new_operation.html',
-		'exchange_rate': 'elements/exchange_rate.html',
-		'transaction_table': 'elements/transaction_table.html',
-
-		'encashment': 'forms/encashment_form.html',
-		'support_form': 'forms/support_form.html',
-		'exchange_form': 'forms/exchange_change_form.html',
 
 		'id': id,
 		'role': role,
+		'admin_messages': admin_messages,
 		'surname': request.session['0'],
 	}
 	rest_money_data = None
 	# Получение данных определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
-	content['user_inform']= certain_cashbox
+	content['user_inform'] = certain_cashbox
 	# Получение данных транзакций и сумм валют определённой кассы
 	transaction_table_data = ExchangeActions.objects.filter(person_data__id = id,
 															operation_date = datetime.date.today())
@@ -262,7 +274,25 @@ def view_cashbox(request, id):
 			certain_cashbox.exchange_rate = get_exchange_rate(request)
 			certain_cashbox.save()
 			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
-		# Добавляем операцию
+		# Вывод информации об операциях за определённую дату
+		elif 'certain_date_info' in request.POST:
+			# TODO выводить операции по определённой дате
+			print('GET DATA INFO')
+			print(request.POST)
+		# Обработка формы создания записки
+		elif 'wasting_money_btn' in request.POST:
+			AdministratorCashCosts(
+					waste_cashbox = get_object_or_404(OrdinaryCashier, id = id),
+					waste_author = request.session['0'],
+					waste_reason = request.POST['wasting_reason'],
+					waste_summ = request.POST['wasting_summ'],
+					waste_currency = request.POST['currency'],
+					waste_comment = re.sub(r'\s+', ' ', request.POST['comment']),
+					waste_date = datetime.date.today(),
+					waste_time = datetime.datetime.now().strftime("%H:%M:%S"),
+			).save()
+			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
+		# Обработка остальных операций
 		else:
 			count_result_of_action(request, id)
 			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
@@ -277,7 +307,8 @@ def edit_cashbox(request, id):
 	# Проверка прав доступа
 	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		return HttpResponseRedirect('/index/')
-
+	# ПОлучение списка всех записок
+	admin_messages = len(AdministratorCashCosts.objects.all())
 	# Получение определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
 	exchange_rate = json.loads(certain_cashbox.exchange_rate)
@@ -298,12 +329,12 @@ def edit_cashbox(request, id):
 
 	content = {
 		'doc': 'edit_cashbox.html',
-		'user_create': 'elements/user_create.html',
 
 		'cashbox_data': certain_cashbox,
 		'exchange_rate_data': exchange_rate,
 		'surname': request.session['0'],
 		'role': True,
+		'admin_messages': admin_messages,
 	}
 	return render(request, 'base.html', content)
 
@@ -356,8 +387,53 @@ def count_result_of_action(request, cashbox_id):
 				money_balance = json.dumps(money_balance),
 				action = json.dumps(result)
 		).save()
+	# Новая операция
 	elif 'new_operation' in request.POST:
 		result["action"] = 'Exchange'
+		print('EXCHANGE NEW OPERATION')
+		print(request.POST)
+	# Удаление операции
+	elif 'delete_operation' in request.POST:
+		# TODO удаление операций начисления и обмена валют
+		# Получение последнего актуального баланса денег в кассе
+		money_balance = json.loads(ExchangeActions.objects.filter(
+														person_data__id = cashbox_id
+														).order_by('-id')[0].money_balance
+									)
+		# Получение данных об операции которую хотим удалить, по id
+		deleted_action = get_object_or_404(ExchangeActions,
+											id = int(request.POST['delete_operation']))
+		# Если была инкассация
+		if json.loads(deleted_action.action)['action'] == 'Encashment':
+			# парсинг результата действия
+			for key in json.loads(deleted_action.action)["changes"].keys():
+				# Запись информации о валюте/сумме которую изменяем
+				result["changes"] = {
+					key: -(float(json.loads(deleted_action.action)['changes'][key])),
+				}
+				money_balance[key] = float(money_balance[key]) - float(json.loads(deleted_action.action)['changes'][key])
+			result["action"] = 'Increase'
+			result["comment"] = "Удаление операции №{0} от {1}".format(
+																		deleted_action.id,
+																		deleted_action.operation_time
+																		)
+			# Получение денежного баланса
+			money_balance = change_money_balance(result, cashbox_id)
+			# Создание новой операции
+			ExchangeActions(
+					operation_date = datetime.date.today(),
+					operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+					person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
+					person_surname = request.session['0'],
+					money_balance = json.dumps(money_balance),
+					action = json.dumps(result)
+			).save()
+		# Если было выделение денег
+		elif json.loads(deleted_action.action)['action'] == 'Increase':
+			pass
+		# Если была обменная операция
+		elif json.loads(deleted_action.action)['action'] == 'Exchange':
+			pass
 
 
 # Получение информации о балансе за прошлый день

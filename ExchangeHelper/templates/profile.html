@@ -1,16 +1,32 @@
 {% block content %}
-<body>
-<div class="container-fluid cont-wrap ng-scope">
-    <div class="row">
-        <div class="col-sm-3">
-            {% include user_create %}
-        </div>
-        <div class="col-sm-9">
-        <div>
-            <h3>Личный кабинет администратора - {{ surname }}</h3>
+    <div class="container-fluid cont-wrap ng-scope">
+        <div class="row">
+            <div class="col-sm-3">
+                {% block user_menu %}
+                    {% include 'elements/user_create.html' %}
+                    {% include 'elements/special_operation.html' %}
+                {% endblock %}
+            </div>
+            <div class="col-sm-9">
+                <div>
+                    <h3>Личный кабинет администратора - {{ surname }}</h3>
+                </div>
+                <div>
+                    {% if waste_list %}
+                        {% for element in waste_list %}
+                            <p><u>Автор</u>:
+                                <a href="/view-cashbox/{{ element.waste_cashbox.id }}">
+                                    <b>{{ element.waste_author }}</b>
+                                </a>
+                            <p><u>Дата создания</u>: <b>{{ element.waste_date }}, {{ element.waste_time }}</b>
+                            <p><u>Тема/причина траты</u>: {{ element.waste_reason }}
+                            <p><u>Сумма и валюта</u>: {{ element.waste_summ }} - {{ element.waste_currency }}
+                            <p><u>Коментарий к операции</u>: {{ element.waste_comment }}
+                            <hr>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+            </div>
         </div>
     </div>
-</div>
-</div>
-</body>
 {% endblock %}

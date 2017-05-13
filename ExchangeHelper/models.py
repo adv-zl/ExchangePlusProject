@@ -1,5 +1,5 @@
 from django.db import models
-from django.contrib.auth.models import AbstractBaseUser, AbstractUser, User, UserManager
+from django.contrib.auth.models import User
 
 
 # Создание рядовойго кассира
@@ -45,3 +45,26 @@ class ExchangeActions(models.Model):
 	# 'changes': {'название валюты': %число на которое изменение было%}
 	# 'comment': 'комментарий к действию од админа'}
 	action = models.CharField(max_length = 200)
+
+
+# Записки для односторонней связи кассир->админ и для записей трат администратора
+class AdministratorCashCosts(models.Model):
+	# Данные кассы
+	waste_cashbox = models.ForeignKey(OrdinaryCashier)
+	# ФИО автора записки
+	waste_author = models.CharField(max_length = 20)
+	# Причина траты
+	waste_reason = models.CharField(max_length = 300)
+	# Сумма трат
+	waste_summ = models.FloatField()
+	# Валюта для траты
+	waste_currency = models.CharField(max_length = 4)
+	# Коментарий к тратам
+	waste_comment = models.CharField(max_length = 600)
+	# Дата операции
+	waste_date = models.DateField()
+	# Время операции
+	waste_time = models.TimeField()
+
+	def __str__(self):
+		return self.waste_reason

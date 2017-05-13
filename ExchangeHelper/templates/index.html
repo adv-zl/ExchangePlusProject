@@ -3,10 +3,14 @@
     <div class="row">
         <div class="col-sm-3">
             {% if not role %}
-                {% include exchange_rate %}
+                {% block exchange_rate %}
+                    {% include 'elements/exchange_rate.html' %}
+                {% endblock %}
             {% endif %}
             {% if role %}
-                {% include user_create %}
+                {% block user_create %}
+                    {% include 'elements/user_create.html' %}
+                {% endblock %}
             {% endif %}
         </div>
         <div class="col-sm-9">
@@ -14,31 +18,31 @@
                 {% if not role %}
                     <div class="panel-body">
                     <a href="/view-cashbox/{{ user_inform.id }}">
-                          <p></p>
-                          <button type="button" class="btn btn-default btn-small"
-                                  data-toggle="tooltip" data-placement="left">
-                              <h4><strong>{{ user_inform}}</strong></h4>
-                          </button>
+                        <p></p>
+                        <button type="button" class="btn btn-default btn-small"
+                                data-toggle="tooltip" data-placement="left">
+                            <h4><strong>{{ user_inform}}</strong></h4>
+                        </button>
                     </a>
                     <p></p>
                     <h4>{{ user_inform.cashier_description_full }}</h4>
                     <p></p>
-
                 {% endif %}
                 {% if role %}
-                Все кассы:
-                {% for element in users %}
-                    <a href="/view-cashbox/{{ element.id }}">
-                          <p></p>
-                          <button type="button" class="btn btn-default btn-small"
-                                  data-toggle="tooltip"
-                                  data-placement="left" title="{{ element.cashier_description_full }}">
-                              <span class="glyphicon glyphicon-euro" aria-hidden="true"></span>
-                              {{ element.cashier_description_short }}
-                          </button>
-                      </a>
-                {% endfor %}
-            {% endif %}
+                    Все кассы:
+                    {% for element in users %}
+                        <a href="/view-cashbox/{{ element.id }}">
+                            <p></p>
+                            <button type="button" class="btn btn-default btn-small"
+                                    data-toggle="tooltip" data-placement="left"
+                                    title="{{ element.cashier_description_full }}">
+                                <span class="glyphicon glyphicon-euro" aria-hidden="true"></span>
+                                {{ element.cashier_description_short }}
+                            </button>
+                        </a>
+                    {% endfor %}
+                {% endif %}
+                </div>
             </div>
         </div>
     </div>

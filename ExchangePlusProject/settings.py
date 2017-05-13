@@ -82,7 +82,7 @@ WSGI_APPLICATION = 'ExchangePlusProject.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': 'ExchangeDB',
+        'NAME': 'ExchangeHelperDB',
     }
 }
 
@@ -124,5 +124,6 @@ USE_TZ = True
 
 STATIC_URL = os.path.join(BASE_DIR, '/static/')
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
 
 

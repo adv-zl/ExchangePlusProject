@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DataSourceManagerImpl" format="xml" multifile-model="true">
-    <data-source source="LOCAL" name="ExchangeDB" uuid="aaf29e3a-b56c-4024-abaf-9c09cbd9262a">
+    <data-source source="LOCAL" name="ExchangeHelperDB" uuid="5a25e10b-bdd4-45e2-ad02-781162406a72">
       <driver-ref>sqlite.xerial</driver-ref>
       <synchronize>true</synchronize>
       <jdbc-driver>org.sqlite.JDBC</jdbc-driver>
-      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/ExchangeDB</jdbc-url>
+      <jdbc-url>jdbc:sqlite:$PROJECT_DIR$/ExchangeHelperDB</jdbc-url>
       <driver-properties>
         <property name="enable_load_extension" value="true" />
       </driver-properties>

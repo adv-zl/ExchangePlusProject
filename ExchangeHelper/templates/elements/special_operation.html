@@ -1,0 +1,17 @@
+{% block content %}
+    <ul class="nav nav-pills nav-stacked">
+        <button style="width:220px;" type="button" class="btn btn-default"
+                data-toggle="modal" data-target="#Waisting">
+            <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span>
+            Записки
+        </button>
+        <div class="modal fade" id="Waisting" tabindex="-1" role="dialog"
+             aria-labelledby="myModalLabel">
+            <div class="modal-dialog" role="document">
+                {% block waisting_form %}
+                    {% include 'forms/special_operation_form.html' %}
+                {% endblock %}
+            </div>
+        </div>
+    </ul>
+{% endblock %}

@@ -59,13 +59,16 @@
                     <td>{{ action.actions_data.changes.gbp or '-' }}</td>
                     <td>{{ action.actions_data.changes.pln or '-' }}</td>
                     {% if role %}
-                        <td>
-                            <button style="width: 90px;" type="submit" class="btn btn-default"
-                                    name="delete_operation" value="{{ action.action.id }}">
-                                <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                Удалить
-                            </button>
-                        </td>
+                        <form  name="encashment_form" enctype="multipart/form-data" method="post">
+                        <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                            <td>
+                                <button style="width: 90px;" type="submit" class="btn btn-default"
+                                        name="delete_operation" value="{{ action.action.id }}">
+                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                    Удалить
+                                </button>
+                            </td>
+                        </form>
                     {% endif %}
                 </tr>
                 {% endfor %}

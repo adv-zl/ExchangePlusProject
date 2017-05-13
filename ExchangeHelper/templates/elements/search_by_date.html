@@ -1,0 +1,13 @@
+{% block content %}
+    <div class="input-group">
+        <form class="navbar-form navbar-left" method="post" role="search">
+            <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+            <div class="form-group">
+                <input type="date" class="form-control" placeholder="Введите дату">
+            </div>
+            <button type="submit" name="certain_date_info" class="btn btn-default">
+                Поиск
+            </button>
+        </form>
+    </div>
+{% endblock %}

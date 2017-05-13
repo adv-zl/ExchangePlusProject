@@ -18,7 +18,7 @@ $(document).ready(setupRates);
 
 
 function handleOperationChange() {
-    if ($(this).val() == 's') {
+    if ($(this).val() == 'sell') {
         $('.val_1_desc').html('Вносимая сумма(заплатит покупатель)');
         $('.val_2_desc').html('Полученная сумма(получит покупатель)');
         $('.cur_1_desc').html('Выберите валюту для покупки');
