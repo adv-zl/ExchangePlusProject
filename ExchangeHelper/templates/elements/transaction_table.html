@@ -48,16 +48,16 @@
                     {% if role %}
                         <td>{{ action.action.person_surname }}</td>
                     {% endif %}
-                    <td>{{ action.actions_data.action}};
-                        <p>{{ action.actions_data.comment}}</p></td>
-                    <td>{{ action.actions_data.changes.uah or '-' }}</td>
-                    <td>{{ action.actions_data.changes.usd or '-' }}</td>
-                    <td>{{ action.actions_data.changes.eur or '-' }}</td>
-                    <td>{{ action.actions_data.changes.rub or '-' }}</td>
-                    <td>{{ action.actions_data.changes.cad or '-' }}</td>
-                    <td>{{ action.actions_data.changes.chf or '-' }}</td>
-                    <td>{{ action.actions_data.changes.gbp or '-' }}</td>
-                    <td>{{ action.actions_data.changes.pln or '-' }}</td>
+                    <td>{{ action.action_type}};
+                        <p>{{ action.action_comment }}</p></td>
+                    <td>{{ action.currency_changes.uah or '-' }}</td>
+                    <td>{{ action.currency_changes.usd or '-' }}</td>
+                    <td>{{ action.currency_changes.eur or '-' }}</td>
+                    <td>{{ action.currency_changes.rub or '-' }}</td>
+                    <td>{{ action.currency_changes.cad or '-' }}</td>
+                    <td>{{ action.currency_changes.chf or '-' }}</td>
+                    <td>{{ action.currency_changes.gbp or '-' }}</td>
+                    <td>{{ action.currency_changes.pln or '-' }}</td>
                     {% if role %}
                         <form  name="encashment_form" enctype="multipart/form-data" method="post">
                             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">

@@ -13,14 +13,6 @@ class OrdinaryCashier(models.Model):# Логин кассира
 	def __str__(self):
 		return self.cashier_description_short
 
-	# Получаем краткое описание юзера
-	def get_cashier_short_description(self):
-		return self.cashier_description_short
-
-	# Получаем полное описание юзера
-	def get_cashier_full_description(self):
-		return self.cashier_description_full
-
 
 # Таблица действий юзера и учёта суммы денег
 class ExchangeActions(models.Model):

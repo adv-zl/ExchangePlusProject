@@ -217,7 +217,7 @@ def create(request):
 			ExchangeRates.objects.create(
 					exchange_rate = get_exchange_rate(request),
 					cashbox = get_object_or_404(OrdinaryCashier, cashbox__user = user),
-					change_date = datetime.datetime.today(),
+					change_date = datetime.date.today(),
 					change_time = datetime.datetime.now().strftime("%H:%M:%S"),
 			)
 
@@ -274,9 +274,9 @@ def view_cashbox(request, id):
 				# Получение данных о балансе
 				"money_balance_data": json.loads(str(action.money_balance)),
 				# Получение данных о операциях
-				"actions_type": action.action_type,
+				"action_type": action.action_type,
 				"currency_changes": json.loads(action.currency_changes),
-				"actions_comment": action.comment,
+				"action_comment": action.comment,
 			})
 		content['actions'] = actions
 	# Курсы валют
@@ -291,15 +291,10 @@ def view_cashbox(request, id):
 			ExchangeRates.objects.create(
 					exchange_rate = get_exchange_rate(request),
 					cashbox = certain_cashbox,
-					change_date = datetime.datetime.today(),
+					change_date = datetime.date.today(),
 					change_time = datetime.datetime.now().strftime("%H:%M:%S"),
 			).save()
 			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
-		# Вывод информации об операциях за определённую дату
-		elif 'certain_date_info' in request.POST:
-			# TODO выводить операции по определённой дате
-			print('GET DATA INFO')
-			print(request.POST)
 		# Обработка формы создания записки
 		elif 'wasting_money_btn' in request.POST:
 			AdministratorCashCosts(
@@ -348,7 +343,7 @@ def edit_cashbox(request, id):
 		ExchangeRates.objects.create(
 				exchange_rate = get_exchange_rate(request),
 				cashbox = certain_cashbox,
-				change_date = datetime.datetime.today(),
+				change_date = datetime.date.today(),
 				change_time = datetime.datetime.now().strftime("%H:%M:%S"),
 		).save()
 
@@ -380,29 +375,67 @@ def cashbox_info_by_date(request):
 	# Создание пустого списка курсов валют
 	exchange_rate_data = ''
 	content = {
-		'doc': 'cashbox_info_by_date.html',
+				'doc': 'cashbox_info_by_date.html',
 
-		'cashbox_list': cashbox_list,
-		'surname': request.session['0'],
-		'role': True,
-		'data': False,
-		'exchange_rate_data': exchange_rate_data,
-		'admin_messages': admin_messages,
-	}
+				'cashbox_list': cashbox_list,
+				'surname': request.session['0'],
+				'role': True,
+				'data': False,
+				'exchange_rate_data': exchange_rate_data,
+				'admin_messages': admin_messages,
+			}
 
 	# Получение определённой кассы
 
 	if request.POST:
-		certain_cashbox = get_object_or_404(OrdinaryCashier, id = request.POST['selected_cashbox'])
-		try:
+		certain_cashbox = OrdinaryCashier.objects.get(id = request.POST['selected_cashbox'])
+		if request.POST['date']:
+			# Получение данных транзакций и сумм валют определённой кассы за
+			# определённую дату
+			transaction_table_data = ExchangeActions.objects.filter(
+																	person_data = certain_cashbox,
+																	operation_date = request.POST['date']
+																	)
+
+			content['rest_money_data'] = get_rest_money(None,
+														certain_cashbox.id,
+														datetime.datetime.strptime(
+																request.POST['date'],
+																'%Y-%m-%d')
+														)
+
 			exchange_rate_info = ExchangeRates.objects.filter(
 												cashbox_id = request.POST['selected_cashbox'],
 												change_date = request.POST['date']
 												).order_by('-id')[0]
-		except:
+		else:
+			# Получение данных транзакций и сумм валют определённой кассы
+			transaction_table_data = ExchangeActions.objects.filter(
+													person_data = certain_cashbox,
+													operation_date = datetime.date.today()
+													)
+
+			content['rest_money_data'] = get_rest_money(None,
+														certain_cashbox.id,
+														datetime.date.today()
+														)
+
 			exchange_rate_info = ExchangeRates.objects.filter(
 											cashbox_id = request.POST['selected_cashbox'],
 											).order_by('-id')[0]
+		# Записываем все действия в список
+		actions = []
+		for action in transaction_table_data:
+			actions.append({
+				"action": action,
+				# Получение данных о балансе
+				"money_balance_data": json.loads(str(action.money_balance)),
+				# Получение данных о операциях
+				"action_type": action.action_type,
+				"currency_changes": json.loads(action.currency_changes),
+				"action_comment": action.comment,
+			})
+		content['actions'] = actions
 
 		exchange_rate_data = json.loads(exchange_rate_info.exchange_rate)
 		content['exchange_rate_data'] = exchange_rate_data
@@ -430,11 +463,13 @@ def count_result_of_action(request, cashbox_id):
 	result = {}
 	# Выделяем денежную поддержку кассе
 	if 'support_btn' in request.POST:
-		result["action"] = 'Increase'
-		result["changes"] = {request.POST['currency']: request.POST['support_summ']}
-		result["comment"] = re.sub(r'\s+', ' ', request.POST['comment'])
 		# Производим изменение баланса денег
-		money_balance = change_money_balance(result, cashbox_id)
+		money_balance = change_money_balance('Increase',
+											{
+												request.POST['currency']:
+												request.POST['support_summ']
+											},
+											cashbox_id)
 		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 		ExchangeActions.objects.create(
 				operation_date = datetime.date.today(),
@@ -442,15 +477,21 @@ def count_result_of_action(request, cashbox_id):
 				person_data = cashier,
 				person_surname = request.session['0'],
 				money_balance = json.dumps(money_balance),
-				action = json.dumps(result)
+				action_type = 'Increase',
+				currency_changes = json.dumps({request.POST['currency']:
+												request.POST['support_summ']}
+											),
+				comment = re.sub(r'\s+', ' ', request.POST['comment'])
 		).save()
 	# Отправляем инкассацию
 	elif 'encashment_btn' in request.POST:
-		result["action"] = 'Encashment'
-		result["changes"] = {request.POST['currency']: '-'+request.POST['encashment_summ']}
-		result["comment"] = re.sub(r'\s+', ' ', request.POST['comment'])
 		# Производим изменение баланса денег
-		money_balance = change_money_balance(result, cashbox_id)
+		money_balance = change_money_balance('Encashment',
+											{
+												request.POST['currency']:
+												-float(request.POST['encashment_summ'])
+											},
+											cashbox_id)
 		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 		ExchangeActions.objects.create(
 				operation_date = datetime.date.today(),
@@ -458,42 +499,46 @@ def count_result_of_action(request, cashbox_id):
 				person_data = cashier,
 				person_surname = request.session['0'],
 				money_balance = json.dumps(money_balance),
-				action = json.dumps(result)
+				action_type = 'Encashment',
+				currency_changes = json.dumps({
+												request.POST['currency']:
+												-float(request.POST['encashment_summ'])
+												}),
+				comment = re.sub(r'\s+', ' ', request.POST['comment'])
 		).save()
 	# Новая операция
 	elif 'new_operation' in request.POST:
 		result["action"] = 'Exchange'
 		print('EXCHANGE NEW OPERATION')
 		print(request.POST)
-	# Удаление операции
+	# Удаление операций
 	elif 'delete_operation' in request.POST:
 		# TODO удаление операций обмена валют
-		# Получение последнего актуального баланса денег в кассе
-		money_balance = json.loads(
-								ExchangeActions.objects.filter(person_data__id = cashbox_id)
-								.order_by('-id')[0].money_balance
-								)
 		# Получение данных об операции которую хотим удалить, по id
-		deleted_action = get_object_or_404(ExchangeActions, id = int(
-														request.POST['delete_operation']
-														)
-										)
+		deleted_action = ExchangeActions.objects.get(id = int(request.POST['delete_operation']))
+		# Получение актуального баланса денег в кассе по номеру кассы и дате
+		money_balance = json.loads(ExchangeActions.objects.filter(
+															person_data__id = cashbox_id,
+															operation_date = deleted_action.operation_date
+															).order_by('-id')[0].money_balance
+								)
+
 		# Если была инкассация
-		if json.loads(deleted_action.action)['action'] == 'Encashment':
+		if deleted_action.action_type == 'Encashment':
 			# парсинг результата действия
-			for key in json.loads(deleted_action.action)["changes"].keys():
+			for key in json.loads(deleted_action.currency_changes).keys():
 				# Запись информации о валюте/сумме которую изменяем
-				result["changes"] = {
-					key: -(float(json.loads(deleted_action.action)['changes'][key])),
-				}
-				money_balance[key] = float(money_balance[key]) - float(json.loads(deleted_action.action)['changes'][key])
-			result["action"] = 'Increase'
-			result["comment"] = "Удаление операции №{0} от {1}".format(
-																		deleted_action.id,
-																		deleted_action.operation_time
-																		)
+				currency_changes = {
+									key: -(float(json.loads(
+													deleted_action.currency_changes)[key])),
+									}
+				money_balance[key] = float(money_balance[key]) \
+									- float(json.loads(deleted_action.currency_changes)[key])
 			# Получение денежного баланса
-			money_balance = change_money_balance(result, cashbox_id)
+			money_balance = change_money_balance('Increase',
+												currency_changes,
+												cashbox_id
+												)
 			# Создание новой операции
 			ExchangeActions(
 					operation_date = datetime.date.today(),
@@ -501,24 +546,31 @@ def count_result_of_action(request, cashbox_id):
 					person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
 					person_surname = request.session['0'],
 					money_balance = json.dumps(money_balance),
-					action = json.dumps(result)
+					action_type = 'Increase',
+					currency_changes = json.dumps(currency_changes),
+					comment = "Удаление операции №{0} от {1}".format(
+															deleted_action.id,
+															deleted_action.operation_time
+															)
 			).save()
 		# Если было выделение денег
-		elif json.loads(deleted_action.action)['action'] == 'Increase':
+		elif deleted_action.action_type == 'Increase':
 			# парсинг результата действия
-			for key in json.loads(deleted_action.action)["changes"].keys():
+			for key in json.loads(deleted_action.currency_changes).keys():
 				# Запись информации о валюте/сумме которую изменяем
-				result["changes"] = {
-					key: -(float(json.loads(deleted_action.action)['changes'][key])),
-				}
-				money_balance[key] = float(money_balance[key]) - float(json.loads(deleted_action.action)['changes'][key])
-			result["action"] = 'Encashment'
-			result["comment"] = "Удаление операции №{0} от {1}".format(
-					deleted_action.id,
-					deleted_action.operation_time
-			)
+				# Запись информации о валюте/сумме которую изменяем
+				currency_changes = {
+									key: - float(json.loads(
+													deleted_action.currency_changes)[key]),
+									}
+				money_balance[key] = float(money_balance[key])\
+									+ float(json.loads(
+													deleted_action.currency_changes)[key])
 			# Получение денежного баланса
-			money_balance = change_money_balance(result, cashbox_id)
+			money_balance = change_money_balance('Encashment',
+												currency_changes,
+												cashbox_id
+												)
 			# Создание новой операции
 			ExchangeActions(
 					operation_date = datetime.date.today(),
@@ -526,10 +578,15 @@ def count_result_of_action(request, cashbox_id):
 					person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
 					person_surname = request.session['0'],
 					money_balance = json.dumps(money_balance),
-					action = json.dumps(result)
+					action_type = 'Encashment',
+					currency_changes = json.dumps(currency_changes),
+					comment = "Удаление операции №{0} от {1}".format(
+															deleted_action.id,
+															deleted_action.operation_time
+															)
 			).save()
 		# Если была обменная операция
-		elif json.loads(deleted_action.action)['action'] == 'Exchange':
+		elif deleted_action.action_type == 'Exchange':
 			pass
 
 
@@ -551,23 +608,21 @@ def get_rest_money(rest_money_data, id, date):
 
 
 # Изменение баланса денег в зависимости от действий юзера
-def change_money_balance(exchange_action, cashbox_id):
+def change_money_balance(action_type, currency_changes, cashbox_id):
 	# Получение последнего актуального баланса денег в кассе
-	money_balance = json.loads(ExchangeActions.objects.filter(
-														person_data__id = cashbox_id
-														).order_by('-id')[0].money_balance
+	money_balance = json.loads(ExchangeActions.objects.filter(person_data__id = cashbox_id)
+								.order_by('-id')[0].money_balance
 								)
-	for key in exchange_action["changes"].keys():
-		if exchange_action["action"] == 'Increase':
+
+	for key in currency_changes.keys():
+		if action_type == 'Increase':
 			# Вносим изменения в сумму определённой валюты
-			money_balance[key] = float(money_balance[key]) + float(exchange_action["changes"][key])
-		elif exchange_action["action"] == 'Encashment':
+			money_balance[key] = float(money_balance[key]) + float(currency_changes[key])
+		elif action_type == 'Encashment':
 			# Вносим изменения в сумму определённой валюты
-			money_balance[key] = (float(money_balance[key]) + float(exchange_action["changes"][key]))
-		elif exchange_action["action"] == 'Exchange':
+			money_balance[key] = (float(money_balance[key]) + float(currency_changes[key]))
+		elif action_type == 'Exchange':
 			# TODO Доработать обработку обменных операций
 			pass
-		else:
-			print("*** НЕИЗВЕСТНАЯ ОПЕРАЦИЯ ***")
 
 	return money_balance

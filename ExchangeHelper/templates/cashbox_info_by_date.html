@@ -29,9 +29,18 @@
                 </form>
                 {% if data %}
                 <p>
-                    <h4>Вы просматриваете информацию о кассе - <b>{{ exchange_rate_info.cashbox }}</b>;
-                        <br> За {{ exchange_rate_info.change_date }} число.</h4>
+                    <h4>Вы просматриваете информацию о кассе -
+                        <b>
+                            <a title="{{ exchange_rate_info.cashbox.cashier_description_full }}"
+                               href="/view-cashbox/{{ exchange_rate_info.cashbox.id }}">
+                                {{ exchange_rate_info.cashbox }}
+                            </a>
+                        </b>;
+                        <br> За {{ actions[0].action.operation_date }} число.</h4>
                 </p>
+                    {% block transaction_table %}
+                        {% include 'elements/transaction_table.html' %}
+                    {% endblock %}
                 {% endif %}
             </div>
         </div>
