@@ -1,0 +1,40 @@
+{% block content %}
+<div class="container-fluid cont-wrap ng-scope">
+    <div class="row">
+        <div class="col-sm-3">
+            <p></p>
+            {% block exchange_rate %}
+                {% include 'elements/exchange_rate.html' %}
+            {% endblock %}
+        </div>
+        <div class="col-sm-9">
+            <div class="panel-body">
+                <form action="" method="post">
+                В выпадающем списке выберите кассу и укажите интересующую дату.
+                <p></p>
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    <select name="selected_cashbox">
+                        {% for cashbox in cashbox_list %}
+                            <option value="{{ cashbox.id }}">{{ cashbox.cashier_description_short }}</option>
+                        {% endfor %}
+                    </select>
+                    <p>
+                    {% block search %}
+                        {% include 'elements/search_by_date.html' %}
+                    {% endblock %}
+                    <p></p>
+                    <button type="submit" name="date_info" class="btn btn-default">
+                        Поиск
+                    </button>
+                </form>
+                {% if data %}
+                <p>
+                    <h4>Вы просматриваете информацию о кассе - <b>{{ exchange_rate_info.cashbox }}</b>;
+                        <br> За {{ exchange_rate_info.change_date }} число.</h4>
+                </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

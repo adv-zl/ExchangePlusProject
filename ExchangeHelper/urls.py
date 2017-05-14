@@ -27,4 +27,5 @@ urlpatterns = [
     url(r'^edit-cashbox/(?P<id>[0-9]+)/$', views.edit_cashbox, name = 'edit'),
     url(r'^create-cashbox/', views.create, name = 'create'),
     url(r'^private/', views.private, name = 'private'),
+    url(r'financial-statement/', views.cashbox_info_by_date, name = 'statement'),
 ]

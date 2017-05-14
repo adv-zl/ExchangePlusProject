@@ -1,7 +1,8 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import auth
 from django.http import HttpResponseRedirect
-from .models import AdministratorCashCosts, OrdinaryCashier, ExchangeActions, User
+from .models import AdministratorCashCosts, ExchangeRates, OrdinaryCashier, \
+	ExchangeActions, User
 import json
 import datetime
 import re
@@ -28,7 +29,9 @@ def index(request):
 	else:
 		person = OrdinaryCashier.objects.filter(user__username = request.user.username)
 		person = person[0]
-		exchange_rate = json.loads(person.exchange_rate)
+		# Получение последнего курса валют для данной кассы
+		exchange_rate = json.loads(ExchangeRates.objects.filter(
+										cashbox = person).order_by('-id')[0].exchange_rate)
 
 	content = {
 		'doc': 'index.html',
@@ -106,7 +109,6 @@ def logout(request):
 
 # Личный кабинет юзера
 def private(request):
-	# TODO дорабтать работу с записками добавить их удаление
 	# Проверка прав доступа
 	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		return HttpResponseRedirect('/index/')
@@ -174,14 +176,11 @@ def create(request):
 			# Считываем описание кассы
 			cashier_description_full = request.POST['description_full']
 			cashier_description_short = request.POST['description_short']
-			# Считываем курсы валют
-			exchange_rate = get_exchange_rate(request)
 			# Сохраняем данные
 			OrdinaryCashier.objects.create(
 					user = user,
 					cashier_description_full = cashier_description_full,
 					cashier_description_short = cashier_description_short,
-					exchange_rate = exchange_rate
 			).save()
 			# Создаём операцию по выделению денег новой кассе
 			ExchangeActions.objects.create(
@@ -214,6 +213,13 @@ def create(request):
 										"comment": "Нчальный баланс"
 									})
 			).save()
+			# Создаём курс валют для данной кассы
+			ExchangeRates.objects.create(
+					exchange_rate = get_exchange_rate(request),
+					cashbox = get_object_or_404(OrdinaryCashier, cashbox__user = user),
+					change_date = datetime.datetime.today(),
+					change_time = datetime.datetime.now().strftime("%H:%M:%S"),
+			)
 
 			return HttpResponseRedirect('/index/')
 
@@ -241,6 +247,7 @@ def view_cashbox(request, id):
 
 	# Список событий
 	actions = []
+	date = datetime.date.today()
 	# Контент страницы
 	content = {
 		'doc': 'view-cashbox.html',
@@ -256,9 +263,9 @@ def view_cashbox(request, id):
 	content['user_inform'] = certain_cashbox
 	# Получение данных транзакций и сумм валют определённой кассы
 	transaction_table_data = ExchangeActions.objects.filter(person_data__id = id,
-															operation_date = datetime.date.today())
+															operation_date = date)
 
-	content['rest_money_data'] = get_rest_money(rest_money_data, id)
+	content['rest_money_data'] = get_rest_money(rest_money_data, id, date)
 
 	if transaction_table_data:
 		for action in transaction_table_data:
@@ -267,18 +274,26 @@ def view_cashbox(request, id):
 				# Получение данных о балансе
 				"money_balance_data": json.loads(str(action.money_balance)),
 				# Получение данных о операциях
-				"actions_data": json.loads(str(action.action)),
+				"actions_type": action.action_type,
+				"currency_changes": json.loads(action.currency_changes),
+				"actions_comment": action.comment,
 			})
 		content['actions'] = actions
 	# Курсы валют
-	content['exchange_rate_data'] = json.loads(certain_cashbox.exchange_rate)
+	content['exchange_rate_data'] = json.loads(ExchangeRates.objects.filter(cashbox = certain_cashbox)
+												.order_by('-id')[0].exchange_rate
+												)
 
 	# Обработка форм
 	if request.POST:
 		# Вносим изменения в курсы валют
 		if 'exchange_rate_save' in request.POST:
-			certain_cashbox.exchange_rate = get_exchange_rate(request)
-			certain_cashbox.save()
+			ExchangeRates.objects.create(
+					exchange_rate = get_exchange_rate(request),
+					cashbox = certain_cashbox,
+					change_date = datetime.datetime.today(),
+					change_time = datetime.datetime.now().strftime("%H:%M:%S"),
+			).save()
 			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
 		# Вывод информации об операциях за определённую дату
 		elif 'certain_date_info' in request.POST:
@@ -318,19 +333,24 @@ def edit_cashbox(request, id):
 	admin_messages = len(AdministratorCashCosts.objects.all())
 	# Получение определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
-	exchange_rate = json.loads(certain_cashbox.exchange_rate)
+	exchange_rate = json.loads(ExchangeRates.objects.filter(cashbox = certain_cashbox)
+							   .order_by('-id')[0].exchange_rate)
 
 	if request.POST:
-		# Считываем курсы валют
-		exchange_rate = get_exchange_rate(request)
 		# Сохраняем данные
 		certain_cashbox.user.username = request.POST['username']
 		if request.POST['password']:
 			certain_cashbox.user.set_password(request.POST['password'])
 		certain_cashbox.cashier_description_full = request.POST['description_full']
 		certain_cashbox.cashier_description_short = request.POST['description_short']
-		certain_cashbox.exchange_rate = exchange_rate
 		certain_cashbox.save()
+		# Создаём курс валют для данной кассы
+		ExchangeRates.objects.create(
+				exchange_rate = get_exchange_rate(request),
+				cashbox = certain_cashbox,
+				change_date = datetime.datetime.today(),
+				change_time = datetime.datetime.now().strftime("%H:%M:%S"),
+		).save()
 
 		return HttpResponseRedirect('/index/')
 
@@ -343,6 +363,52 @@ def edit_cashbox(request, id):
 		'role': True,
 		'admin_messages': admin_messages,
 	}
+	return render(request, 'base.html', content)
+
+
+# Просмотр информации о кассах по дате
+def cashbox_info_by_date(request):
+	if request.user.is_anonymous():
+		return HttpResponseRedirect('/login/')
+	# Проверка прав доступа
+	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
+		return HttpResponseRedirect('/index/')
+	# ПОлучение списка всех записок
+	admin_messages = len(AdministratorCashCosts.objects.all())
+	# Получение списка всех касс
+	cashbox_list = OrdinaryCashier.objects.all()
+	# Создание пустого списка курсов валют
+	exchange_rate_data = ''
+	content = {
+		'doc': 'cashbox_info_by_date.html',
+
+		'cashbox_list': cashbox_list,
+		'surname': request.session['0'],
+		'role': True,
+		'data': False,
+		'exchange_rate_data': exchange_rate_data,
+		'admin_messages': admin_messages,
+	}
+
+	# Получение определённой кассы
+
+	if request.POST:
+		certain_cashbox = get_object_or_404(OrdinaryCashier, id = request.POST['selected_cashbox'])
+		try:
+			exchange_rate_info = ExchangeRates.objects.filter(
+												cashbox_id = request.POST['selected_cashbox'],
+												change_date = request.POST['date']
+												).order_by('-id')[0]
+		except:
+			exchange_rate_info = ExchangeRates.objects.filter(
+											cashbox_id = request.POST['selected_cashbox'],
+											).order_by('-id')[0]
+
+		exchange_rate_data = json.loads(exchange_rate_info.exchange_rate)
+		content['exchange_rate_data'] = exchange_rate_data
+		content['exchange_rate_info'] = exchange_rate_info
+		content['data'] = True
+
 	return render(request, 'base.html', content)
 
 
@@ -403,13 +469,15 @@ def count_result_of_action(request, cashbox_id):
 	elif 'delete_operation' in request.POST:
 		# TODO удаление операций обмена валют
 		# Получение последнего актуального баланса денег в кассе
-		money_balance = json.loads(ExchangeActions.objects.filter(
-														person_data__id = cashbox_id
-														).order_by('-id')[0].money_balance
-									)
+		money_balance = json.loads(
+								ExchangeActions.objects.filter(person_data__id = cashbox_id)
+								.order_by('-id')[0].money_balance
+								)
 		# Получение данных об операции которую хотим удалить, по id
-		deleted_action = get_object_or_404(ExchangeActions,
-											id = int(request.POST['delete_operation']))
+		deleted_action = get_object_or_404(ExchangeActions, id = int(
+														request.POST['delete_operation']
+														)
+										)
 		# Если была инкассация
 		if json.loads(deleted_action.action)['action'] == 'Encashment':
 			# парсинг результата действия
@@ -466,8 +534,7 @@ def count_result_of_action(request, cashbox_id):
 
 
 # Получение информации о балансе за прошлый день
-def get_rest_money(rest_money_data, id):
-	date = datetime.date.today()
+def get_rest_money(rest_money_data, id, date):
 	# Если данных за сегодня нет - получаем данные за вчерашний день, о сумме валюте
 	while not rest_money_data:
 		date = date.replace(day = date.day - 1)

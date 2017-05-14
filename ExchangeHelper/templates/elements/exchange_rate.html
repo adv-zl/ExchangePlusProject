@@ -28,56 +28,40 @@
                 </tr>
                 <tr>
                     <td>USD</td>
-                    <td>{{ exchange_rate_data.usd_buy }}</td>
-                    <td>{{ exchange_rate_data.usd_sell }}</td>
+                    <td>{{ exchange_rate_data.usd_buy or 0 }}</td>
+                    <td>{{ exchange_rate_data.usd_sell or 0 }}</td>
                 </tr>
                 <tr>
                     <td>EUR</td>
-                    <td>{{ exchange_rate_data.eur_buy }}</td>
-                    <td>{{ exchange_rate_data.eur_sell }}</td>
+                    <td>{{ exchange_rate_data.eur_buy  or 0 }}</td>
+                    <td>{{ exchange_rate_data.eur_sell  or 0 }}</td>
                 </tr>
                 <tr>
                     <td>RUB</td>
-                    <td>{{ exchange_rate_data.rub_buy }}</td>
-                    <td>{{ exchange_rate_data.rub_sell }}</td>
+                    <td>{{ exchange_rate_data.rub_buy  or 0 }}</td>
+                    <td>{{ exchange_rate_data.rub_sell  or 0 }}</td>
                 </tr>
                 <tr>
                     <td>CAD</td>
-                    <td>{{ exchange_rate_data.cad_buy }}</td>
-                    <td>{{ exchange_rate_data.cad_sell }}</td>
+                    <td>{{ exchange_rate_data.cad_buy  or 0 }}</td>
+                    <td>{{ exchange_rate_data.cad_sell  or 0 }}</td>
                 </tr>
                 <tr>
                     <td>CHF</td>
-                    <td>{{ exchange_rate_data.chf_buy }}</td>
-                    <td>{{ exchange_rate_data.chf_sell }}</td>
+                    <td>{{ exchange_rate_data.chf_buy  or 0 }}</td>
+                    <td>{{ exchange_rate_data.chf_sell  or 0 }}</td>
                 </tr>
                 <tr>
                     <td>GBP</td>
-                    <td>{{ exchange_rate_data.gbp_buy }}</td>
-                    <td>{{ exchange_rate_data.gbp_sell }}</td>
+                    <td>{{ exchange_rate_data.gbp_buy  or 0 }}</td>
+                    <td>{{ exchange_rate_data.gbp_sell  or 0 }}</td>
                 </tr>
                 <tr>
                     <td>PLN</td>
-                    <td>{{ exchange_rate_data.pln_buy }}</td>
-                    <td>{{ exchange_rate_data.pln_sell }}</td>
+                    <td>{{ exchange_rate_data.pln_buy  or 0 }}</td>
+                    <td>{{ exchange_rate_data.pln_sell  or 0 }}</td>
                 </tr>
             </table>
         </div>
     </div>
-    <script> window.ExchangeRates = {
-                                    usd: { b: {{ exchange_rate_data.usd_buy }},
-                                           s: {{ exchange_rate_data.usd_sell }} },
-                                    eur: { b: {{ exchange_rate_data.eur_buy }},
-                                           s: {{ exchange_rate_data.eur_sell }} },
-                                    rub: { b: {{ exchange_rate_data.rub_buy }},
-                                           s: {{ exchange_rate_data.rub_sell }} },
-                                    cad: { b: {{ exchange_rate_data.cad_buy }},
-                                           s: {{ exchange_rate_data.cad_sell }} },
-                                    chf: { b: {{ exchange_rate_data.chf_buy }},
-                                           s: {{ exchange_rate_data.chf_sell }} },
-                                    gbp: { b: {{ exchange_rate_data.gbp_buy }},
-                                           s: {{ exchange_rate_data.gbp_sell }} },
-                                    pln: { b: {{ exchange_rate_data.pln_buy }},
-                                           s: {{ exchange_rate_data.pln_sell }} },
-                                }  </script>
 {% endblock %}

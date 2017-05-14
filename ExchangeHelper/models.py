@@ -9,8 +9,6 @@ class OrdinaryCashier(models.Model):# Логин кассира
 	cashier_description_full = models.CharField(max_length = 600)
 	# Краткое описание кассы
 	cashier_description_short = models.CharField(max_length = 100)
-	# Курс валют для касира
-	exchange_rate = models.CharField(max_length = 400)
 
 	def __str__(self):
 		return self.cashier_description_short
@@ -22,10 +20,6 @@ class OrdinaryCashier(models.Model):# Логин кассира
 	# Получаем полное описание юзера
 	def get_cashier_full_description(self):
 		return self.cashier_description_full
-
-	# Получаем таблицу валют
-	def get_exchange_table(self):
-		return self.exchange_rate
 
 
 # Таблица действий юзера и учёта суммы денег
@@ -40,11 +34,23 @@ class ExchangeActions(models.Model):
 	person_surname = models.CharField(max_length = 20)
 	# Список валют в кассе и их баланс
 	money_balance = models.CharField(max_length = 200)
+	# Тип операции  "Инкасация/Обмен/Пополнение" - "Encashment / Exchange / Increase"
+	action_type = models.CharField(max_length = 20)
+	# Изменение кол-ва валюты:
+	# инкасация/попленение {
+	# 'currency': 'summ'
+	# },
+	# обмен: {
+	# 'currency_get': 'summ',
+	# 'currency_put': 'summ'
+	# }
+	currency_changes = models.CharField(max_length = 20)
+
 	# Коментарий к событию
-	# {'action': 'событие типа "Инкасация/Обмен/Пополнение"',
-	# 'changes': {'название валюты': %число на которое изменение было%}
-	# 'comment': 'комментарий к действию од админа'}
-	action = models.CharField(max_length = 200)
+	comment = models.CharField(max_length = 200)
+
+	def __str__(self):
+		return self.action_type
 
 
 # Записки для односторонней связи кассир->админ и для записей трат администратора
@@ -70,4 +76,13 @@ class AdministratorCashCosts(models.Model):
 		return self.waste_reason
 
 
-# Оповещения для кассиров
+# Курсы валют
+class ExchangeRates(models.Model):
+	# Курс валют для касира
+	exchange_rate = models.CharField(max_length = 400)
+	# Касса к которой привязан курс валют
+	cashbox = models.ForeignKey(OrdinaryCashier)
+	# Дата изменения курса валют
+	change_date = models.DateField()
+	# Время операции
+	change_time = models.TimeField()
