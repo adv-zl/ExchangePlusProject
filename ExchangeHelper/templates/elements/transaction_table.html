@@ -4,7 +4,7 @@
         <!-- Default panel contents -->
         <div class="panel-heading">Произведённые операции</div>
         <!-- Table -->
-        <table class="table">
+        <table class="table table-bordered">
             <tr>
                 <th>№</th>
                 <th>Дата и время</th>
@@ -22,9 +22,9 @@
                 <th>PLN</th>
                 <th>Удаление</th>
             </tr>
-            <tr>
+            <tr class="info">
                 <td></td>
-                <td>Остаток на <p>{{ rest_money_data.date }}</p></td>
+                <td >Остаток на <p>{{ rest_money_data.date }}</p></td>
                 <td>-</td>
                 {% if role %}
                     <td>-</td>
@@ -72,7 +72,7 @@
                     {% endif %}
                 </tr>
                 {% endfor %}
-                <tr>
+                <tr class="info">
                     <td></td>
                     <td>Текущий остаток {{ actions[-1].action.operation_date }},
                         {{ actions[-1].action.operation_time }}</td>
@@ -92,6 +92,38 @@
                 </tr>
             {% endif %}
         </table>
+    <br>
+    <table class="table table-bordered">
+        <tr>
+            <th>Дата</th>
+            <th>UAH</th>
+            <th>USD</th>
+            <th>EUR</th>
+            <th>RUB</th>
+            <th>CAD</th>
+            <th>CHF</th>
+            <th>GBP</th>
+            <th>PLN</th>
+        </tr>
+        <tr>
+            <td>Прибыль {{ actions[-1].action.operation_date }}</td>
+            <td>{{ profit_balance.uah }}</td>
+            <td>{{ profit_balance.usd }}</td>
+            <td>{{ profit_balance.eur }}</td>
+            <td>{{ profit_balance.rub }}</td>
+            <td>{{ profit_balance.cad }}</td>
+            <td>{{ profit_balance.chf }}</td>
+            <td>{{ profit_balance.gbp }}</td>
+            <td>{{ profit_balance.pln }}</td>
+        </tr>
+        <tr class="success" >
+            <td>И того, чистая прибыль составила</td>
+            <td>
+                {{
+                        profit_balance.uah + profit_balance.usd*26.5
+                        }}UAH
+            </td>
+        </tr>
+    </table>
     </div>
-</div>
 {% endblock %}

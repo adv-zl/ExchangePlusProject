@@ -261,6 +261,8 @@ def view_cashbox(request, id):
 	# Получение данных определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
 	content['user_inform'] = certain_cashbox
+	# Вычисление прибыли кассы
+	content['profit_balance'] = profit_calculation(date, id)
 	# Получение данных транзакций и сумм валют определённой кассы
 	transaction_table_data = ExchangeActions.objects.filter(person_data__id = id,
 															operation_date = date)
@@ -626,3 +628,28 @@ def change_money_balance(action_type, currency_changes, cashbox_id):
 			pass
 
 	return money_balance
+
+# Подсчёт прибыли за сутки
+# Учитывается лишь прибыль от обменных операций
+def profit_calculation(date, id):
+	# Профицит за день
+	profit_balance = {
+						"uah": 0,
+						"usd": 0,
+						"eur": 0,
+						"rub": 0,
+						"cad": 0,
+						"chf": 0,
+						"gbp": 0,
+						"pln": 0,
+					}
+
+	exchange_data = ExchangeActions.objects.filter(person_data__id = id,
+													operation_date = date,
+													action_type = 'Exchange')
+	for operation in exchange_data:
+		for key in json.loads(operation.currency_changes).keys():
+			# Вносим изменения в профицит
+			profit_balance[key] = float(profit_balance[key]) + float(json.loads(operation.currency_changes)[key])
+
+	return profit_balance

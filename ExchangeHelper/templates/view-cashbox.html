@@ -28,11 +28,6 @@
                 {% block new_operation_form %}
                     {% include 'elements/new_operation.html' %}
                 {% endblock %}
-                {% if role %}
-                    {% block search %}
-                        {% include 'elements/search_by_date.html' %}
-                    {% endblock %}
-                {% endif %}
                 <p></p>
                 {% block transaction_table %}
                     {% include 'elements/transaction_table.html' %}
