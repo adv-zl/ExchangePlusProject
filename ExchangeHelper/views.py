@@ -283,8 +283,7 @@ def view_cashbox(request, id):
 		content['actions'] = actions
 	# Курсы валют
 	content['exchange_rate_data'] = json.loads(ExchangeRates.objects.filter(cashbox = certain_cashbox)
-												.order_by('-id')[0].exchange_rate
-												)
+												.order_by('-id')[0].exchange_rate)
 
 	# Обработка форм
 	if request.POST:
@@ -331,7 +330,7 @@ def edit_cashbox(request, id):
 	# Получение определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
 	exchange_rate = json.loads(ExchangeRates.objects.filter(cashbox = certain_cashbox)
-							   .order_by('-id')[0].exchange_rate)
+														.order_by('-id')[0].exchange_rate)
 
 	if request.POST:
 		# Сохраняем данные
@@ -450,13 +449,20 @@ def cashbox_info_by_date(request):
 # Получаем значения курсов валют со страницы
 def get_exchange_rate(request):
 	return json.dumps({
-				"usd_buy": request.POST['usd_buy'], "usd_sell": request.POST['usd_sell'],
-				"eur_buy": request.POST['eur_buy'], "eur_sell": request.POST['eur_sell'],
-				"rub_buy": request.POST['rub_buy'], "rub_sell": request.POST['rub_sell'],
-				"cad_buy": request.POST['cad_buy'], "cad_sell": request.POST['cad_sell'],
-				"chf_buy": request.POST['chf_buy'], "chf_sell": request.POST['chf_sell'],
-				"gbp_buy": request.POST['gbp_buy'], "gbp_sell": request.POST['gbp_sell'],
-				"pln_buy": request.POST['pln_buy'], "pln_sell": request.POST['pln_sell'],
+				"usd_buy": float(request.POST['usd_buy']),
+				"usd_sell": float(request.POST['usd_sell']),
+				"eur_buy": float(request.POST['eur_buy']),
+				"eur_sell": float(request.POST['eur_sell']),
+				"rub_buy": float(request.POST['rub_buy']),
+				"rub_sell": float(request.POST['rub_sell']),
+				"cad_buy": float(request.POST['cad_buy']),
+				"cad_sell": float(request.POST['cad_sell']),
+				"chf_buy": float(request.POST['chf_buy']),
+				"chf_sell": float(request.POST['chf_sell']),
+				"gbp_buy": float(request.POST['gbp_buy']),
+				"gbp_sell": float(request.POST['gbp_sell']),
+				"pln_buy": float(request.POST['pln_buy']),
+				"pln_sell": float(request.POST['pln_sell']),
 			})
 
 
@@ -510,12 +516,12 @@ def count_result_of_action(request, cashbox_id):
 		).save()
 	# Новая операция
 	elif 'new_operation' in request.POST:
+		# TODO Добавить операции обмена
 		result["action"] = 'Exchange'
 		print('EXCHANGE NEW OPERATION')
 		print(request.POST)
 	# Удаление операций
 	elif 'delete_operation' in request.POST:
-		# TODO удаление операций обмена валют
 		# Получение данных об операции которую хотим удалить, по id
 		deleted_action = ExchangeActions.objects.get(id = int(request.POST['delete_operation']))
 		# Получение актуального баланса денег в кассе по номеру кассы и дате
@@ -555,15 +561,17 @@ def count_result_of_action(request, cashbox_id):
 															deleted_action.operation_time
 															)
 			).save()
+			# Модификация старой операции что бы её нельзя было больше удалять
+			deleted_action.possibility_of_operation = False
+			deleted_action.save()
 		# Если было выделение денег
 		elif deleted_action.action_type == 'Increase':
 			# парсинг результата действия
 			for key in json.loads(deleted_action.currency_changes).keys():
 				# Запись информации о валюте/сумме которую изменяем
-				# Запись информации о валюте/сумме которую изменяем
 				currency_changes = {
-									key: - float(json.loads(
-													deleted_action.currency_changes)[key]),
+									key: - (float(json.loads(
+													deleted_action.currency_changes)[key])),
 									}
 				money_balance[key] = float(money_balance[key])\
 									+ float(json.loads(
@@ -587,10 +595,43 @@ def count_result_of_action(request, cashbox_id):
 															deleted_action.operation_time
 															)
 			).save()
+			# Модификация старой операции что бы её нельзя было больше удалять
+			deleted_action.possibility_of_operation = False
+			deleted_action.save()
 		# Если была обменная операция
 		elif deleted_action.action_type == 'Exchange':
-			pass
+			# Сюда будут записаны изменения валют
+			currency_changes = {}
+			# парсинг результата действия
+			for key in json.loads(deleted_action.currency_changes).keys():
+				# Запись информации о валюте/сумме которую изменяем
+				currency_changes[key] = - float(json.loads(deleted_action.currency_changes)[key])
+				money_balance[key] = float(money_balance[key])\
+									+ float(json.loads(deleted_action.currency_changes)[key])
+			# Получение денежного баланса
+			money_balance = change_money_balance('Exchange',
+												currency_changes,
+												cashbox_id
+												)
+			# Создание новой операции
+			ExchangeActions(
+					operation_date = datetime.date.today(),
+					operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+					person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
+					person_surname = request.session['0'],
+					money_balance = json.dumps(money_balance),
+					action_type = 'Exchange',
+					currency_changes = json.dumps(currency_changes),
+					comment = "Удаление обменной операции №{0} от {1}".format(
+															deleted_action.id,
+															deleted_action.operation_time
+															),
+					possibility_of_operation = False
+			).save()
 
+			# Модификация старой операции что бы её нельзя было больше удалять
+			deleted_action.possibility_of_operation = False
+			deleted_action.save()
 
 # Получение информации о балансе за прошлый день
 def get_rest_money(rest_money_data, id, date):
@@ -629,9 +670,11 @@ def change_money_balance(action_type, currency_changes, cashbox_id):
 
 	return money_balance
 
+
 # Подсчёт прибыли за сутки
 # Учитывается лишь прибыль от обменных операций
 def profit_calculation(date, id):
+	# TODO добавить подсчёт прибыли
 	# Профицит за день
 	profit_balance = {
 						"uah": 0,
@@ -646,10 +689,9 @@ def profit_calculation(date, id):
 
 	exchange_data = ExchangeActions.objects.filter(person_data__id = id,
 													operation_date = date,
-													action_type = 'Exchange')
+													action_type = 'Exchange',)
 	for operation in exchange_data:
 		for key in json.loads(operation.currency_changes).keys():
 			# Вносим изменения в профицит
 			profit_balance[key] = float(profit_balance[key]) + float(json.loads(operation.currency_changes)[key])
-
 	return profit_balance

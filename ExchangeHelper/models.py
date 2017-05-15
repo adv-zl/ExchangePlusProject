@@ -33,15 +33,15 @@ class ExchangeActions(models.Model):
 	# 'currency': 'summ'
 	# },
 	# обмен: {
-	# 'currency_get': 'summ',
-	# 'currency_put': 'summ'
+	# 'currency_get': 'summ' >0,
+	# 'currency_put': 'summ' <0
 	# }
 	currency_changes = models.CharField(max_length = 100)
 
 	# Коментарий к событию
 	comment = models.CharField(max_length = 200)
 	# Активна ли операция, если да то она поерация обмена иона не удалённая
-	possibility_of_operation = models.BooleanField(default = False)
+	possibility_of_operation = models.BooleanField(default = True)
 
 
 	def __str__(self):

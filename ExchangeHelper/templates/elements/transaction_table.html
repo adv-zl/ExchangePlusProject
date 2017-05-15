@@ -58,7 +58,7 @@
                     <td>{{ action.currency_changes.chf or '-' }}</td>
                     <td>{{ action.currency_changes.gbp or '-' }}</td>
                     <td>{{ action.currency_changes.pln or '-' }}</td>
-                    {% if role %}
+                    {% if role and action.action.possibility_of_operation %}
                         <form  name="encashment_form" enctype="multipart/form-data" method="post">
                             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                             <td>
@@ -70,6 +70,11 @@
                             </td>
                         </form>
                     {% endif %}
+                    {% if not role or not action.action.possibility_of_operation %}
+                        <td>
+                            Невозможно
+                        </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
                 <tr class="info">
@@ -80,7 +85,7 @@
                     {% if role %}
                         <td>-</td>
                     {% endif %}
-                    <td>{{actions[-1].money_balance_data.uah }}</td>
+                    <td>{{ actions[-1].money_balance_data.uah }}</td>
                     <td>{{ actions[-1].money_balance_data.usd }}</td>
                     <td>{{ actions[-1].money_balance_data.eur }}</td>
                     <td>{{ actions[-1].money_balance_data.rub }}</td>
@@ -89,6 +94,20 @@
                     <td>{{ actions[-1].money_balance_data.gbp }}</td>
                     <td>{{ actions[-1].money_balance_data.pln }}</td>
                     <td></td>
+                    {% if actions[-1].money_balance_data.uah +
+                      actions[-1].money_balance_data.usd*exchange_rate_data.usd_buy +
+                      actions[-1].money_balance_data.eur*exchange_rate_data.eur_buy +
+                      actions[-1].money_balance_data.rub*exchange_rate_data.rub_buy +
+                      actions[-1].money_balance_data.cad*exchange_rate_data.cad_buy +
+                      actions[-1].money_balance_data.chf*exchange_rate_data.chf_buy +
+                      actions[-1].money_balance_data.gbp*exchange_rate_data.gbp_buy +
+                      actions[-1].money_balance_data.pln*exchange_rate_data.pln_buy > 10
+                            %}
+                        <div class="alert alert-danger">
+                            <h4><strong>ВНИМАНИЕ !!!</strong></h4> <br>
+                            Сумма в кассе превышает допустимые значения
+                        </div>
+                    {% endif %}
                 </tr>
             {% endif %}
         </table>
@@ -120,8 +139,15 @@
             <td>И того, чистая прибыль составила</td>
             <td>
                 {{
-                        profit_balance.uah + profit_balance.usd*26.5
-                        }}UAH
+                        profit_balance.uah +
+                        profit_balance.usd*exchange_rate_data.usd_buy +
+                        profit_balance.eur*exchange_rate_data.eur_buy +
+                        profit_balance.rub*exchange_rate_data.rub_buy +
+                        profit_balance.cad*exchange_rate_data.cad_buy +
+                        profit_balance.chf*exchange_rate_data.chf_buy +
+                        profit_balance.gbp*exchange_rate_data.gbp_buy +
+                        profit_balance.pln*exchange_rate_data.pln_buy
+                        }} UAH
             </td>
         </tr>
     </table>
