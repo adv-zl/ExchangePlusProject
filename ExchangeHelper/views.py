@@ -198,25 +198,23 @@ def create(request):
 												"gbp": 0,
 												"pln": 0
 											}),
-					action = json.dumps({
-										"action": "Новая касса",
-										"changes": {
-													"uah": 0,
-													"usd": 0,
-													"eur": 0,
-													"rub": 0,
-													"cad": 0,
-													"chf": 0,
-													"gbp": 0,
-													"pln": 0
-													},
-										"comment": "Нчальный баланс"
-									})
+					action_type = 'Новая касса',
+					currency_changes = json.dumps({
+												"uah": 0,
+												"usd": 0,
+												"eur": 0,
+												"rub": 0,
+												"cad": 0,
+												"chf": 0,
+												"gbp": 0,
+												"pln": 0
+												}),
+					comment = "Начальный баланс",
 			).save()
 			# Создаём курс валют для данной кассы
 			ExchangeRates.objects.create(
 					exchange_rate = get_exchange_rate(request),
-					cashbox = get_object_or_404(OrdinaryCashier, cashbox__user = user),
+					cashbox = get_object_or_404(OrdinaryCashier, user = user),
 					change_date = datetime.date.today(),
 					change_time = datetime.datetime.now().strftime("%H:%M:%S"),
 			)
@@ -247,7 +245,7 @@ def view_cashbox(request, id):
 
 	# Список событий
 	actions = []
-	date = datetime.date.today()
+	date = datetime.datetime.today()
 	# Контент страницы
 	content = {
 		'doc': 'view-cashbox.html',
@@ -282,8 +280,8 @@ def view_cashbox(request, id):
 			})
 		content['actions'] = actions
 	# Курсы валют
-	content['exchange_rate_data'] = json.loads(ExchangeRates.objects.filter(cashbox = certain_cashbox)
-												.order_by('-id')[0].exchange_rate)
+	content['exchange_rate_data'] = json.loads((ExchangeRates.objects.filter(cashbox = certain_cashbox)
+												.order_by('-id'))[0].exchange_rate)
 
 	# Обработка форм
 	if request.POST:
@@ -391,39 +389,50 @@ def cashbox_info_by_date(request):
 	if request.POST:
 		certain_cashbox = OrdinaryCashier.objects.get(id = request.POST['selected_cashbox'])
 		if request.POST['date']:
+			date = datetime.datetime.strptime(request.POST['date'],'%Y-%m-%d')
 			# Получение данных транзакций и сумм валют определённой кассы за
 			# определённую дату
 			transaction_table_data = ExchangeActions.objects.filter(
 																	person_data = certain_cashbox,
-																	operation_date = request.POST['date']
+																	operation_date = date
 																	)
+			# Если по зпдпнной юзером дате нет никакой итнформации
+			if not transaction_table_data:
+				content['doc'] = 'mistakes/wrong_date.html'
+				content['data'] = True
+
+				return render(request, 'base.html', content)
 
 			content['rest_money_data'] = get_rest_money(None,
 														certain_cashbox.id,
-														datetime.datetime.strptime(
-																request.POST['date'],
-																'%Y-%m-%d')
+														date
 														)
 
-			exchange_rate_info = ExchangeRates.objects.filter(
-												cashbox_id = request.POST['selected_cashbox'],
-												change_date = request.POST['date']
-												).order_by('-id')[0]
+			exchange_rate_info = (ExchangeRates.objects.filter(
+														cashbox_id = certain_cashbox.id,
+														change_date = date
+														).order_by('-id'))[0]
+			# Вычисление прибыли кассы
+			content['profit_balance'] = profit_calculation(
+								datetime.datetime.strptime(request.POST['date'],'%Y-%m-%d'),
+								certain_cashbox.id)
 		else:
 			# Получение данных транзакций и сумм валют определённой кассы
 			transaction_table_data = ExchangeActions.objects.filter(
 													person_data = certain_cashbox,
-													operation_date = datetime.date.today()
+													operation_date = datetime.datetime.today()
 													)
 
 			content['rest_money_data'] = get_rest_money(None,
 														certain_cashbox.id,
-														datetime.date.today()
+														datetime.datetime.today()
 														)
 
-			exchange_rate_info = ExchangeRates.objects.filter(
-											cashbox_id = request.POST['selected_cashbox'],
-											).order_by('-id')[0]
+			exchange_rate_info = ExchangeRates.objects.filter(cashbox_id = certain_cashbox.id
+																).order_by('-id')[0]
+			# Вычисление прибыли кассы
+			content['profit_balance'] = profit_calculation(datetime.datetime.today(),
+															certain_cashbox.id)
 		# Записываем все действия в список
 		actions = []
 		for action in transaction_table_data:
@@ -633,15 +642,20 @@ def count_result_of_action(request, cashbox_id):
 			deleted_action.possibility_of_operation = False
 			deleted_action.save()
 
+
 # Получение информации о балансе за прошлый день
 def get_rest_money(rest_money_data, id, date):
+	if date > datetime.datetime.today():
+		date = datetime.date.today()
+	# Предельная глубина поиска от заданой даты
+	max_depth = date.month - 2
 	# Если данных за сегодня нет - получаем данные за вчерашний день, о сумме валюте
-	while not rest_money_data:
-		date = date.replace(day = date.day - 1)
+	while date.month >= max_depth and not rest_money_data:
+		date = date - datetime.timedelta(days = 1)
 		try:
-			rest_money_data = ExchangeActions.objects.filter(person_data__id = id,
+			rest_money_data = (ExchangeActions.objects.filter(person_data__id = id,
 															operation_date = date
-															).order_by('-id')[0]
+															).order_by('-id'))[0]
 		except:
 			pass
 	# Получение информации о балансе за прошлый день

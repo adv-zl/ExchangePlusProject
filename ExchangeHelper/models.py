@@ -43,7 +43,6 @@ class ExchangeActions(models.Model):
 	# Активна ли операция, если да то она поерация обмена иона не удалённая
 	possibility_of_operation = models.BooleanField(default = True)
 
-
 	def __str__(self):
 		return self.action_type
 

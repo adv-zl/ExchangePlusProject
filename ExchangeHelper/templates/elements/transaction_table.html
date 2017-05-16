@@ -101,7 +101,7 @@
                       actions[-1].money_balance_data.cad*exchange_rate_data.cad_buy +
                       actions[-1].money_balance_data.chf*exchange_rate_data.chf_buy +
                       actions[-1].money_balance_data.gbp*exchange_rate_data.gbp_buy +
-                      actions[-1].money_balance_data.pln*exchange_rate_data.pln_buy > 10
+                      actions[-1].money_balance_data.pln*exchange_rate_data.pln_buy > 5000
                             %}
                         <div class="alert alert-danger">
                             <h4><strong>ВНИМАНИЕ !!!</strong></h4> <br>
@@ -125,15 +125,17 @@
             <th>PLN</th>
         </tr>
         <tr>
-            <td>Прибыль {{ actions[-1].action.operation_date }}</td>
-            <td>{{ profit_balance.uah }}</td>
-            <td>{{ profit_balance.usd }}</td>
-            <td>{{ profit_balance.eur }}</td>
-            <td>{{ profit_balance.rub }}</td>
-            <td>{{ profit_balance.cad }}</td>
-            <td>{{ profit_balance.chf }}</td>
-            <td>{{ profit_balance.gbp }}</td>
-            <td>{{ profit_balance.pln }}</td>
+            {% if actions %}
+                <td>Прибыль {{ actions[-1].action.operation_date }}</td>
+                <td>{{ profit_balance.uah }}</td>
+                <td>{{ profit_balance.usd }}</td>
+                <td>{{ profit_balance.eur }}</td>
+                <td>{{ profit_balance.rub }}</td>
+                <td>{{ profit_balance.cad }}</td>
+                <td>{{ profit_balance.chf }}</td>
+                <td>{{ profit_balance.gbp }}</td>
+                <td>{{ profit_balance.pln }}</td>
+            {% endif %}
         </tr>
         <tr class="success" >
             <td>И того, чистая прибыль составила</td>
