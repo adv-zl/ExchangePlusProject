@@ -58,6 +58,7 @@ def home(request):
 			content['surname'] = request.session['0']
 		if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 			content['role'] = True
+			content['users'] = OrdinaryCashier.objects.all()
 
 	return render(request, 'base.html', content)
 
@@ -73,6 +74,7 @@ def wiki(request):
 			content['surname'] = request.session['0']
 		if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 			content['role'] = True
+			content['users'] = OrdinaryCashier.objects.all()
 
 	return render(request, 'base.html', content)
 
@@ -150,6 +152,8 @@ def private(request):
 		'surname': request.session['0'],
 		'admin_messages': admin_messages
 	}
+	# ПОлучение списка всех касс
+	content['users'] = OrdinaryCashier.objects.all()
 	return render(request, 'base.html', content)
 
 
@@ -256,6 +260,8 @@ def view_cashbox(request, id):
 		'admin_messages': admin_messages,
 		'surname': request.session['0'],
 	}
+	# ПОлучение списка всех касс
+	content['users'] = OrdinaryCashier.objects.all()
 	# Получение данных определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
 	content['user_inform'] = certain_cashbox
@@ -357,6 +363,8 @@ def edit_cashbox(request, id):
 		'role': True,
 		'admin_messages': admin_messages,
 	}
+	# ПОлучение списка всех касс
+	content['users'] = OrdinaryCashier.objects.all()
 	return render(request, 'base.html', content)
 
 
@@ -383,6 +391,8 @@ def cashbox_info_by_date(request):
 				'exchange_rate_data': exchange_rate_data,
 				'admin_messages': admin_messages,
 			}
+	# ПОлучение списка всех касс
+	content['users'] = OrdinaryCashier.objects.all()
 
 	# Получение определённой кассы
 
@@ -484,10 +494,13 @@ def get_exchange_rate(request):
 # Обработчик действий выдачи средств/инкассации и операций обмена
 def count_result_of_action(request, cashbox_id):
 	"""
-	
-	:param request: 
-	:param cashbox_id: 
-	:return: 
+	Реализация действий юзера: выделение денег, инкассация, создание новой операции, 
+	удаление операции
+	:param request: Принимает в качестве параметра POST запро и на основе того что 
+	выбрал юзер - вычисляет результат и производит действия 
+	:param cashbox_id: Номер кассы с которой был послан POST запрос
+	:return: Ничего не возвращает, лишь создаёт новые операции в БД 
+	или изменяет старые и сохраняет.
 	"""
 	result = {}
 	# Выделяем денежную поддержку кассе
@@ -559,12 +572,8 @@ def count_result_of_action(request, cashbox_id):
 		# Изменяем баланс денег в кассе
 		money_balance = change_money_balance('Exchange',
 											{
-												'put': {
-													put_currency: put_summ
-												},
-												'get': {
-													get_currency: get_summ
-												}
+												put_currency: put_summ,
+												get_currency: get_summ,
 											},
 											cashbox_id)
 		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
@@ -582,7 +591,6 @@ def count_result_of_action(request, cashbox_id):
 				}),
 				comment = 'Обменная операция.'
 		).save()
-
 	# Удаление операций
 	elif 'delete_operation' in request.POST:
 		# Получение данных об операции которую хотим удалить, по id
@@ -689,7 +697,7 @@ def count_result_of_action(request, cashbox_id):
 															deleted_action.id,
 															deleted_action.operation_time
 															),
-					possibility_of_operation = False
+					possibility_of_operation = True
 			).save()
 
 			# Модификация старой операции что бы её нельзя было больше удалять
@@ -757,9 +765,8 @@ def change_money_balance(action_type, currency_changes, cashbox_id):
 			# Вносим изменения в сумму определённой валюты
 			money_balance[key] = (float(money_balance[key]) + float(currency_changes[key]))
 		elif action_type == 'Exchange':
-			for curr_key in currency_changes[key].keys():
-				money_balance[curr_key] = round(float(money_balance[curr_key])
-													+ currency_changes[key][curr_key], 3)
+			money_balance[key] = round(float(money_balance[key])
+															+ currency_changes[key], 3)
 
 	return money_balance
 

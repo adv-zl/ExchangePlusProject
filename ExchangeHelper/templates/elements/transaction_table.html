@@ -94,20 +94,6 @@
                     <td>{{ actions[-1].money_balance_data.gbp }}</td>
                     <td>{{ actions[-1].money_balance_data.pln }}</td>
                     <td></td>
-                    {% if actions[-1].money_balance_data.uah +
-                      actions[-1].money_balance_data.usd*exchange_rate_data.usd_buy +
-                      actions[-1].money_balance_data.eur*exchange_rate_data.eur_buy +
-                      actions[-1].money_balance_data.rub*exchange_rate_data.rub_buy +
-                      actions[-1].money_balance_data.cad*exchange_rate_data.cad_buy +
-                      actions[-1].money_balance_data.chf*exchange_rate_data.chf_buy +
-                      actions[-1].money_balance_data.gbp*exchange_rate_data.gbp_buy +
-                      actions[-1].money_balance_data.pln*exchange_rate_data.pln_buy > 5000
-                            %}
-                        <div class="alert alert-danger">
-                            <h4><strong>ВНИМАНИЕ !!!</strong></h4> <br>
-                            Сумма в кассе превышает допустимые значения
-                        </div>
-                    {% endif %}
                 </tr>
             {% endif %}
         </table>

@@ -22,6 +22,9 @@
                         </button>
                     </a>
                 {% endif %}
+                {% block available_funds %}
+                    {% include 'elements/available_funds.html' %}
+                {% endblock %}
                 <p></p>
                 <h4>{{ user_inform.cashier_description_full }}</h4>
                 <br>

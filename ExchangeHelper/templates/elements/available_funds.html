@@ -1,0 +1,45 @@
+{% block content %}
+    <div class="panel panel-default">
+        <table class="table table-bordered">
+            <tr>
+                <th>Дата и время</th>
+                <th>UAH</th>
+                <th>USD</th>
+                <th>EUR</th>
+                <th>RUB</th>
+                <th>CAD</th>
+                <th>CHF</th>
+                <th>GBP</th>
+                <th>PLN</th>
+            </tr>
+            {% if actions %}
+                <tr class="info">
+                    <td>Текущий остаток {{ actions[-1].action.operation_date }},
+                        {{ actions[-1].action.operation_time }}</td>
+                    <td>{{ actions[-1].money_balance_data.uah }}</td>
+                    <td>{{ actions[-1].money_balance_data.usd }}</td>
+                    <td>{{ actions[-1].money_balance_data.eur }}</td>
+                    <td>{{ actions[-1].money_balance_data.rub }}</td>
+                    <td>{{ actions[-1].money_balance_data.cad }}</td>
+                    <td>{{ actions[-1].money_balance_data.chf }}</td>
+                    <td>{{ actions[-1].money_balance_data.gbp }}</td>
+                    <td>{{ actions[-1].money_balance_data.pln }}</td>
+                </tr>
+                {% if actions[-1].money_balance_data.uah +
+                     actions[-1].money_balance_data.usd*exchange_rate_data.usd_buy +
+                     actions[-1].money_balance_data.eur*exchange_rate_data.eur_buy +
+                     actions[-1].money_balance_data.rub*exchange_rate_data.rub_buy +
+                     actions[-1].money_balance_data.cad*exchange_rate_data.cad_buy +
+                     actions[-1].money_balance_data.chf*exchange_rate_data.chf_buy +
+                     actions[-1].money_balance_data.gbp*exchange_rate_data.gbp_buy +
+                     actions[-1].money_balance_data.pln*exchange_rate_data.pln_buy > 5000
+                        %}
+                    <div class="alert alert-danger">
+                        <h4><strong>ВНИМАНИЕ !!!</strong></h4> <br>
+                        Сумма в кассе превышает допустимые значения
+                    </div>
+                {% endif %}
+            {% endif %}
+        </table>
+    </div>
+{% endblock %}

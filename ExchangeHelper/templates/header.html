@@ -21,6 +21,23 @@
                       {% endif %}
                   </a>
               </li>
+              <li class="dropdown">
+                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                     style="margin-right: 10px">
+                      Список всех касс
+                      <span class="glyphicon glyphicon-circle-arrow-down"></span></a>
+                  <ul class="dropdown-menu">
+                      {% for element in users %}
+                          <li>
+                              <a href="/view-cashbox/{{ element.id }}" title="{{ element.cashier_description_full }}">
+                                  <span class="glyphicon glyphicon-euro" aria-hidden="true"></span>
+                                  {{ element.cashier_description_short }}
+                              </a>
+                          </li>
+                          <li role="separator" class="divider"></li>
+                      {% endfor %}
+                  </ul>
+              </li>
           </ul>
           {% endif %}
 
