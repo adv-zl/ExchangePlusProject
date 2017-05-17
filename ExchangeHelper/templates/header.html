@@ -41,6 +41,7 @@
                       </button>
                   </a>
               </ul>
+              {% if role %}
               <ul style="margin-right: 10px" class="nav navbar-nav navbar-right">
                   <a href="/financial-statement" title="Финансовый отчёт">
                       <p></p>
@@ -50,6 +51,7 @@
                       </button>
                   </a>
               </ul>
+              {% endif %}
           {% endif %}
           {% if not surname %}
               <ul class="nav navbar-nav navbar-right">

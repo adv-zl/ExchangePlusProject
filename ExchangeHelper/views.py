@@ -6,6 +6,7 @@ from .models import AdministratorCashCosts, ExchangeRates, OrdinaryCashier, \
 import json
 import datetime
 import re
+# TODO Заполнить документации к функциям
 
 
 # основная странциа с формами и функционалом
@@ -255,7 +256,6 @@ def view_cashbox(request, id):
 		'admin_messages': admin_messages,
 		'surname': request.session['0'],
 	}
-	rest_money_data = None
 	# Получение данных определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
 	content['user_inform'] = certain_cashbox
@@ -265,7 +265,7 @@ def view_cashbox(request, id):
 	transaction_table_data = ExchangeActions.objects.filter(person_data__id = id,
 															operation_date = date)
 
-	content['rest_money_data'] = get_rest_money(rest_money_data, id, date)
+	content['rest_money_data'] = get_rest_money(id, date)
 
 	if transaction_table_data:
 		for action in transaction_table_data:
@@ -403,10 +403,7 @@ def cashbox_info_by_date(request):
 
 				return render(request, 'base.html', content)
 
-			content['rest_money_data'] = get_rest_money(None,
-														certain_cashbox.id,
-														date
-														)
+			content['rest_money_data'] = get_rest_money(certain_cashbox.id, date)
 
 			exchange_rate_info = (ExchangeRates.objects.filter(
 														cashbox_id = certain_cashbox.id,
@@ -429,10 +426,8 @@ def cashbox_info_by_date(request):
 
 				return render(request, 'base.html', content)
 
-			content['rest_money_data'] = get_rest_money(None,
-														certain_cashbox.id,
-														datetime.datetime.today()
-														)
+			content['rest_money_data'] = get_rest_money(certain_cashbox.id,
+														datetime.datetime.today())
 
 			exchange_rate_info = ExchangeRates.objects.filter(cashbox_id = certain_cashbox.id
 																).order_by('-id')[0]
@@ -463,6 +458,11 @@ def cashbox_info_by_date(request):
 
 # Получаем значения курсов валют со страницы
 def get_exchange_rate(request):
+	"""
+	
+	:param request: 
+	:return: 
+	"""
 	return json.dumps({
 				"usd_buy": float(request.POST['usd_buy']),
 				"usd_sell": float(request.POST['usd_sell']),
@@ -483,6 +483,12 @@ def get_exchange_rate(request):
 
 # Обработчик действий выдачи средств/инкассации и операций обмена
 def count_result_of_action(request, cashbox_id):
+	"""
+	
+	:param request: 
+	:param cashbox_id: 
+	:return: 
+	"""
 	result = {}
 	# Выделяем денежную поддержку кассе
 	if 'support_btn' in request.POST:
@@ -658,7 +664,17 @@ def count_result_of_action(request, cashbox_id):
 
 
 # Получение информации о балансе за прошлый день
-def get_rest_money(rest_money_data, id, date):
+def get_rest_money(id, date):
+	"""
+	Получаем информацию о балансе за прошлый рабочий день, максимальный срок - 2 
+	месяца, иначе операция считается невыполнимой.
+	:param id: Получаем ID кассы по которой делается выборка по последнему балансу 
+	за прошлый день 
+	:param date: Дата последней оперции сделанной не сегодня 
+	:return: Возвращает словарь значений состоящий из баланса денег после последней 
+	операции и дате выборки
+	"""
+	rest_money_data = None
 	if date > datetime.datetime.today():
 		date = datetime.date.today()
 	# Предельная глубина поиска от заданой даты
@@ -680,6 +696,20 @@ def get_rest_money(rest_money_data, id, date):
 
 # Изменение баланса денег в зависимости от действий юзера
 def change_money_balance(action_type, currency_changes, cashbox_id):
+	"""
+	Изменение баланса кассы в зависимости от типа операции которую провёл юзер.
+	:param action_type: Передаётся тип операции, их всего 3 "Внесение 
+	средств/Инкассация/Обмен валют" - "Increase/Encashment/Exchange" соответственно
+	:param currency_changes: Получаем словарь в котором представлены изменения курса 
+	валют, вид имеет: {%currency%: +/-%summ%}
+	:param cashbox_id: Получаем ID конкретной кассы в которой произошла операция(это 
+	используется для выборки денежного баланса опеределённой кассы)
+	:return: Возвращает обновлённый денежный баланс кассы, так же в виде словаря:
+		{
+			%currency%: %summ%,
+			и так для всех используемых валют
+		}
+	"""
 	# Получение последнего актуального баланса денег в кассе
 	money_balance = json.loads(ExchangeActions.objects.filter(person_data__id = cashbox_id)
 								.order_by('-id')[0].money_balance
@@ -702,6 +732,14 @@ def change_money_balance(action_type, currency_changes, cashbox_id):
 # Подсчёт прибыли за сутки
 # Учитывается лишь прибыль от обменных операций
 def profit_calculation(date, id):
+	"""
+	Результат всех обменных операций за день по валютам складывается и получается сумма всего что 
+	касса наторговала за день.
+	:param date: Получает дату по которой делается выборка всех ОБМЕННЫХ операций и 
+	происходит их подсчёт
+	:param id: Получает ID кассы и так же делает выборку по нему и параметру даты
+	:return: Возвращает в словаря сумму всего наторгованного в кассе по определённой дате
+	"""
 	# TODO добавить подсчёт прибыли
 	# Профицит за день
 	profit_balance = {
