@@ -537,17 +537,51 @@ def count_result_of_action(request, cashbox_id):
 		).save()
 	# Новая операция
 	elif 'check' in request.POST:
-		# TODO Добавить операции обмена
 		result["action"] = 'Exchange'
 		operation_type = request.POST['operation']
 		if operation_type == 's':
 			# Операция продажи
-			pass
-		else:
-			# Операция покупки
-			pass
-		print('EXCHANGE NEW OPERATION')
-		print(request.POST)
+			put_summ = -float(request.POST['summ_2'])
+			put_currency = request.POST['currency_2']
+			# Сумма и валюта которую получим от покупателя
+			get_summ = float(request.POST['summ_1'])
+			get_currency = request.POST['currency_1']
+
+		elif operation_type == 'b':
+			# Операция покупки валюты у населения
+			# Сумма и валюта которую отдадим покупателю
+			put_summ = -float(request.POST['summ_1'])
+			put_currency = request.POST['currency_1']
+			# Сумма и валюта которую получим от покупателя
+			get_summ = float(request.POST['summ_2'])
+			get_currency = request.POST['currency_2']
+
+		# Изменяем баланс денег в кассе
+		money_balance = change_money_balance('Exchange',
+											{
+												'put': {
+													put_currency: put_summ
+												},
+												'get': {
+													get_currency: get_summ
+												}
+											},
+											cashbox_id)
+		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
+		# Создаём новую операцию
+		ExchangeActions.objects.create(
+				operation_date = datetime.date.today(),
+				operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+				person_data = cashier,
+				person_surname = request.session['0'],
+				money_balance = json.dumps(money_balance),
+				action_type = 'Exchange',
+				currency_changes = json.dumps({
+					put_currency: put_summ,
+					get_currency: get_summ
+				}),
+				comment = 'Обменная операция.'
+		).save()
 
 	# Удаление операций
 	elif 'delete_operation' in request.POST:
@@ -723,8 +757,9 @@ def change_money_balance(action_type, currency_changes, cashbox_id):
 			# Вносим изменения в сумму определённой валюты
 			money_balance[key] = (float(money_balance[key]) + float(currency_changes[key]))
 		elif action_type == 'Exchange':
-			# TODO Доработать обработку обменных операций
-			pass
+			for curr_key in currency_changes[key].keys():
+				money_balance[curr_key] = round(float(money_balance[curr_key])
+													+ currency_changes[key][curr_key], 3)
 
 	return money_balance
 
@@ -759,5 +794,7 @@ def profit_calculation(date, id):
 	for operation in exchange_data:
 		for key in json.loads(operation.currency_changes).keys():
 			# Вносим изменения в профицит
-			profit_balance[key] = float(profit_balance[key]) + float(json.loads(operation.currency_changes)[key])
+			profit_balance[key] = round(float(profit_balance[key])
+										+ float(json.loads(operation.currency_changes)[key]), 3)
+
 	return profit_balance
