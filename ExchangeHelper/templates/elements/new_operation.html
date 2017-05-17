@@ -4,26 +4,25 @@
             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
             <div>
                 <p><b>Выберите тип операции</b></p>
-                <p><input name="operation" type="radio" value="buy" checked id="op_buy">
+                <p><input name="operation" type="radio" value="b" checked id="op_buy">
                     <label for="op_buy">Покупка </label></p>
-                <p><input name="operation" type="radio" value="sell" id="op_sell"> <label
-                        for="op_sell">Продажа</label></p>
-                <!-- Tab panes -->
-                <!-- Tab panes -->
+                <p><input name="operation" type="radio" value="s" id="op_sell">
+                    <label for="op_sell">Продажа</label></p>
                 <div class="tab-content">
                     <div role="tabpanel" class="tab-pane fade in active" id="sell">
                         <div class="input-group">
                             <div style="width:315px;" class="input-group-addon val_1_desc">
                                 Введите сумму для покупки(получит покупатель)
                             </div>
-                            <input class="val_1" name="buy_summ" type="number" step="0.01" min="0" style="width:100px; height: 30px">
+                            <input class="val_1" name="summ_1" type="number" step="0.01"
+                                   min="0" style="width:100px; height: 30px">
                         </div>
                         <p></p>
                         <div class="input-group">
                             <div style="width:315px;" class="input-group-addon cur_1_desc">
                                 Выберите валюту для покупки
                             </div>
-                            <select class="cur_1" style="width:100px; height: 30px">
+                            <select name="currency_1" class="cur_1" style="width:100px; height: 30px">
                                 <option value="uah">UAH</option>
                                 <option value="usd">USD</option>
                                 <option value="eur">EUR</option>
@@ -39,7 +38,7 @@
                             <div style="width:315px;" class="input-group-addon cur_2_desc">
                                 Выберите вносимую валюту
                             </div>
-                            <select class="cur_2" style="width:100px; height: 30px">
+                            <select name="currency_2" class="cur_2" style="width:100px; height: 30px">
                                 <option value="uah">UAH</option>
                                 <option value="usd">USD</option>
                                 <option value="eur">EUR</option>
@@ -55,18 +54,31 @@
                             <div style="width:315px;" class="input-group-addon val_2_desc">
                                 Вносимая сумма(заплатит покупатель)
                             </div>
-                            <input class="val_2" name="sell_summ" type="number"
-                                   step="0.01" min="0" style="width:100px; height: 30px" disabled>
+                            <input class="val_2" name="summ_2" type="number" step="0.01"
+                                   min="0" style="width:100px; height: 30px" onkeyup="checkParams()" id="input">
                         </div>
                     </div>
                     <br>
                 </div>
                 <br>
+                <script type="text/javascript">
+                    function checkParams() {
+                        var inp = $('#input').val();
+
+                        if(inp.length != 0 ) {
+                            $('#button_send').removeAttr('disabled');
+                        } else {
+                            $('#button_send').attr('disabled', 'disabled');
+                        }
+                    }
+                </script>
+
                 <div align="left">
-                    <button type="button" class="btn btn-default" name="check" data-dismiss="modal">
-                        Рассчёт</button>
-                    <button  type="submit" class="btn btn-primary" name="new_operation">
+                    <button type="submit" class="btn btn-primary" name="check"
+                            id="button_send" disabled>
                         Совершить операцию</button>
+                    <button  type="submit" class="btn btn-default" name="calculate">
+                        Предварительный рассчёт</button>
                 </div>
             </div>
         </form>

@@ -44,7 +44,8 @@ class ExchangeActions(models.Model):
 	possibility_of_operation = models.BooleanField(default = True)
 
 	def __str__(self):
-		return self.action_type
+		return (self.action_type +' - '+str(self.operation_date)+', '+ str(
+				self.operation_time))
 
 
 # Записки для односторонней связи кассир->админ и для записей трат администратора

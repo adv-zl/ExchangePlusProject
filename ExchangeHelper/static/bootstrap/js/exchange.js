@@ -1,5 +1,5 @@
 function handleOperationChange() {
-    if ($(this).val() == 'sell') {
+    if ($(this).val() == 's') {
         $('.val_1_desc').html('Вносимая сумма(заплатит покупатель)');
         $('.val_2_desc').html('Полученная сумма(получит покупатель)');
         $('.cur_1_desc').html('Выберите валюту для покупки');
@@ -35,7 +35,7 @@ function convert(e) {
         alert('Введите значение');
         return false;
     }
-    // Все валюты сравниваются с гривной. Соответственно, 
+    // Все валюты сравниваются с гривной. Соответственно,
     if (c.cur_1 == 'uah') {
         result = toUah(c.val_1, c.cur_2)
     }
@@ -47,16 +47,16 @@ function convert(e) {
     $('.val_2').val(result)
 }
 
-$(document).on('click', 'button[name=check]', convert);
+$(document).on('click', 'button[name=calculate]', convert);
 
 function fromUah(amount, currency) {
     rate = ExchangeRates[currency][operation];
     converted = amount * rate;
-    return (converted).toFixed(2)
+    return (converted).toFixed(4)
 }
 
 function toUah(amount, currency) {
     rate = ExchangeRates[currency][operation];
     converted = amount / rate;
-    return (converted).toFixed(2)
+    return (converted).toFixed(4)
 }

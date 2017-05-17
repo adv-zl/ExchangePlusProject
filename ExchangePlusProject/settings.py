@@ -78,14 +78,23 @@ WSGI_APPLICATION = 'ExchangePlusProject.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-
+# TODO сменить БД на постгрес
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': 'ExchangeHelperDB',
     }
 }
-
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+        'LOCATION': '127.0.0.1:8000',
+        'TIMEOUT': 400*3600,
+        'OPTIONS': {
+            'MAX_ENTRIES': 1000
+        }
+    }
+}
 
 # Password validation
 # https://docs.djangoproject.com/en/1.10/ref/settings/#auth-password-validators
@@ -124,6 +133,8 @@ USE_TZ = True
 
 STATIC_URL = os.path.join(BASE_DIR, '/static/')
 STATIC_ROOT = os.path.join(BASE_DIR, "static/")
-SESSION_EXPIRE_AT_BROWSER_CLOSE = True
+SESSION_COOKIE_AGE = 4*3600
+
+
 
 

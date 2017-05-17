@@ -422,6 +422,12 @@ def cashbox_info_by_date(request):
 													person_data = certain_cashbox,
 													operation_date = datetime.datetime.today()
 													)
+			# Если по зпдпнной юзером дате нет никакой итнформации
+			if not transaction_table_data:
+				content['doc'] = 'mistakes/wrong_date.html'
+				content['data'] = True
+
+				return render(request, 'base.html', content)
 
 			content['rest_money_data'] = get_rest_money(None,
 														certain_cashbox.id,
@@ -524,11 +530,19 @@ def count_result_of_action(request, cashbox_id):
 				comment = re.sub(r'\s+', ' ', request.POST['comment'])
 		).save()
 	# Новая операция
-	elif 'new_operation' in request.POST:
+	elif 'check' in request.POST:
 		# TODO Добавить операции обмена
 		result["action"] = 'Exchange'
+		operation_type = request.POST['operation']
+		if operation_type == 's':
+			# Операция продажи
+			pass
+		else:
+			# Операция покупки
+			pass
 		print('EXCHANGE NEW OPERATION')
 		print(request.POST)
+
 	# Удаление операций
 	elif 'delete_operation' in request.POST:
 		# Получение данных об операции которую хотим удалить, по id
@@ -654,13 +668,13 @@ def get_rest_money(rest_money_data, id, date):
 		date = date - datetime.timedelta(days = 1)
 		try:
 			rest_money_data = (ExchangeActions.objects.filter(person_data__id = id,
-															operation_date = date
-															).order_by('-id'))[0]
+																operation_date = date
+																).order_by('-id'))[0]
 		except:
 			pass
 	# Получение информации о балансе за прошлый день
 	rest_money_data = json.loads(str(rest_money_data.money_balance))
-	rest_money_data['date'] = date
+	rest_money_data['date'] = date.date()
 	return rest_money_data
 
 
