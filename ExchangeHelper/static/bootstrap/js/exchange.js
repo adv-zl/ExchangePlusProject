@@ -70,10 +70,10 @@ function CurToUah(amount, currency, currency_2) {
         if (amount > AvailableFunds[currency_2]) {
             alert("Нехватка " + currency_2 + " в кассе!");
         } else {
-            return (converted).toFixed(4)
+            return (converted).toFixed(2)
         }
     }else {
-            return (converted).toFixed(4)
+            return (converted).toFixed(2)
 	}
 }
 // покупка чего-то за гривны
@@ -83,7 +83,7 @@ function UahToCur(amount, currency) {
 	if ( amount > AvailableFunds[currency]) {
 		alert("Нехватка " + [currency] + " в кассе!!!");
 	} else {
-		return (converted).toFixed(4)
+		return (converted).toFixed(2)
 	}
 }
 //ПРОДАЖА
@@ -93,7 +93,7 @@ function CurFromUah(amount, currency) {
 	if (converted > AvailableFunds[currency]) {
 		alert("Не хватает на  " + (converted).toFixed(2) +" "+ currency + " в кассе!");
 	} else {
-            return (converted).toFixed(4)
+            return (converted).toFixed(2)
 	}
 }
 function UahFromCur(amount, currency, currency_2) {
@@ -103,11 +103,11 @@ function UahFromCur(amount, currency, currency_2) {
 		if (converted > AvailableFunds[currency_2]) {
 			alert("Не хватает на  " + (converted).toFixed(2) +" "+ currency_2 + " в кассе!!");
 		} else {
-			return (converted).toFixed(4)
+			return (converted).toFixed(2)
 		}
 	}
 	else {
-		return (converted).toFixed(5)
+		return (converted).toFixed(2)
 	}
 
 }

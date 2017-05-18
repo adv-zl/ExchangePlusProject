@@ -3,7 +3,7 @@
         <ul class="nav nav-pills nav-stacked">
             {% if role %}
                 <li>
-                    <button title="Выделение денег кассе для работы" style="width:220px;"
+                    <button title="Выделение денег кассе для работы" style="width:100%;"
                             type="button" class="btn btn-default"
                             data-toggle="modal" data-target="#Support">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
@@ -19,7 +19,7 @@
                     </div>
                 </li>
                 <li>
-                    <button title="Инкассация определённой суммы" style="width:220px;"
+                    <button title="Инкассация определённой суммы" style="width:100%;"
                             type="button" class="btn btn-default" data-toggle="modal"
                             data-target="#Encashment">
                         <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
@@ -35,7 +35,7 @@
                     </div>
                 </li>
                 <li>
-                    <button title="Выделение деенег на нужды кассы" style="width:220px;"
+                    <button title="Выделение деенег на нужды кассы" style="width:100%;"
                             type="button" class="btn btn-default"
                             data-toggle="modal" data-target="#CashboxWaste">
                         <span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>
@@ -52,9 +52,20 @@
                 </li>
                 {% endif %}
                 <li>
-                    {% block special_operation %}
-                        {% include 'elements/special_operation.html' %}
-                    {% endblock %}
+                    <button title="Записка для администратора" style="width:100%;"
+                            type="button" class="btn btn-default" data-toggle="modal"
+                            data-target="#Waisting">
+                        <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span>
+                        Записки
+                    </button>
+                    <div class="modal fade" id="Waisting" tabindex="-1" role="dialog"
+                         aria-labelledby="myModalLabel">
+                        <div class="modal-dialog" role="document">
+                            {% block waisting_form %}
+                                {% include 'forms/special_operation_form.html' %}
+                            {% endblock %}
+                        </div>
+                    </div>
                 </li>
         </ul>
     </div>

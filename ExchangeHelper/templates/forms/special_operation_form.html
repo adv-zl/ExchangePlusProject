@@ -12,18 +12,18 @@
                 <form  name="wasting_money" enctype="multipart/form-data" method="post">
                     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                     <div class="input-group">
-                        <div style="width:100px;" class="input-group-addon">
-                            Введите причину трат
+                        <div style="width:170px;" class="input-group-addon">
+                            Введите причину
                         </div>
                         <input required name="wasting_reason" type="text"
                                style="width:245px; height: 30px">
                     </div>
                     <p><div class="input-group">
                         <div style="width:315px;" class="input-group-addon">
-                            Введите сумму для трат
+                            Введите сумму
                         </div>
-                        <input required name="wasting_summ" type="number" step="0.01"
-                               min="0" style="width:100px; height: 30px">
+                        <input value="0" name="wasting_summ" type="number" step="0.01"
+                               style="width:100px; height: 30px">
                     </div>
 
                     <p><div class="input-group">
@@ -47,7 +47,7 @@
                             Введите коментарий к операции
                         </div>
                         <div style="width:180px;" class="form-group">
-                            <textarea name="comment" class="form-control" rows="2">
+                            <textarea required name="comment" class="form-control" rows="2">
                             </textarea>
                         </div>
                     </div>
@@ -57,7 +57,7 @@
                             Закрыть
                         </button>
                         <button type="submit" name="wasting_money_btn" class="btn btn-primary">
-                            Утвердить
+                            Отправить
                         </button>
                     </div>
                 </form>

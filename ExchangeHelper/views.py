@@ -315,8 +315,11 @@ def view_cashbox(request, id):
 			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
 		# Обработка остальных операций
 		else:
-			count_result_of_action(request, id)
-			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
+			if count_result_of_action(request, id):
+				return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
+			else:
+				content['error'] = True
+				return render(request, 'base.html', content)
 
 	return render(request, 'base.html', content)
 
@@ -536,6 +539,8 @@ def count_result_of_action(request, cashbox_id):
 												-float(request.POST['encashment_summ'])
 											},
 											cashbox_id)
+		if not money_balance:
+			return False
 		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 		ExchangeActions.objects.create(
 				operation_date = datetime.date.today(),
@@ -715,6 +720,8 @@ def count_result_of_action(request, cashbox_id):
 												-float(request.POST['cashbox_waste_summ'])
 											},
 											1)
+		if not money_balance:
+			return False
 		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 		cashier_admin = get_object_or_404(OrdinaryCashier, id = 1)
 		ExchangeActions.objects.create(
@@ -731,6 +738,7 @@ def count_result_of_action(request, cashbox_id):
 				comment = ("Выделение денег кассе - {0}; Коментарий: ".format(cashier)
 										+ re.sub(r'\s+', ' ', request.POST['comment']))
 		).save()
+	return True
 
 
 # Получение информации о балансе за прошлый день
@@ -788,10 +796,16 @@ def change_money_balance(action_type, currency_changes, cashbox_id):
 	for key in currency_changes.keys():
 		if action_type == 'Increase':
 			# Вносим изменения в сумму определённой валюты
-			money_balance[key] = float(money_balance[key]) + float(currency_changes[key])
+			money_balance[key] = round(float(money_balance[key]) +
+														float(currency_changes[key]), 3)
 		elif action_type == 'Encashment':
-			# Вносим изменения в сумму определённой валюты
-			money_balance[key] = (float(money_balance[key]) + float(currency_changes[key]))
+			# Если в кассе денег меньше чем мы хотим снять
+			if float(money_balance[key]) < -(float(currency_changes[key])):
+				return False
+			else:
+				# Вносим изменения в сумму определённой валюты
+				money_balance[key] = round(float(money_balance[key]) +
+															float(currency_changes[key]), 3)
 		elif action_type == 'Exchange':
 			money_balance[key] = round(float(money_balance[key])
 															+ currency_changes[key], 3)
@@ -822,14 +836,17 @@ def profit_calculation(date, id):
 						"gbp": 0,
 						"pln": 0,
 					}
-
+	# Получение списка всех операций данной кассы в данный день
 	exchange_data = ExchangeActions.objects.filter(person_data__id = id,
 													operation_date = date,
 													action_type = 'Exchange',)
+	# Получение последнего актуального курса для кассы на определённую дату
+	exchange_rate = json.loads((ExchangeRates.objects.filter(cashbox__id = id)
+												.order_by('-id'))[0].exchange_rate)
 	for operation in exchange_data:
 		for key in json.loads(operation.currency_changes).keys():
 			# Вносим изменения в профицит
 			profit_balance[key] = round(float(profit_balance[key])
-										+ float(json.loads(operation.currency_changes)[key]), 3)
+									+ float(json.loads(operation.currency_changes)[key]), 3)
 
 	return profit_balance

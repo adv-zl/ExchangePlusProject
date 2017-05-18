@@ -12,6 +12,11 @@
             {% endblock %}
         </div>
         <div class="col-sm-9">
+            {% if error %}
+                {% block err %}
+                    {% include 'mistakes/operation_error.html' %}
+                {% endblock %}
+            {% endif %}
             <div class="panel-body">
                 <h3><strong>{{ user_inform}}</strong></h3>
                 {% if role %}
