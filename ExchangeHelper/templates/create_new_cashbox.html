@@ -19,7 +19,14 @@
         </div>
         <div class="col-sm-9">
             <h3>Для создания кассы заполните <strong>все</strong> поля:</h3>
-            <h2>{{ error }}</h2>
+            <h3>
+                {% if error %}
+                <div style="width: 560px" class="alert alert-danger">
+                    <h4><strong>ВНИМАНИЕ !!!</strong></h4>
+                    Пользователь с таким именем уже существует.
+                </div>
+                {% endif %}
+            </h3>
             <br>
             <form  name="new_cashbox" enctype="multipart/form-data" method="post">
                 <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">

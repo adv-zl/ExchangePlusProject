@@ -1,5 +1,3 @@
-
-
 function handleOperationChange() {
 	if ($(this).val() == 's') {
 		$('.val_1_desc').html('Вносимая сумма(заплатит покупатель)');
@@ -41,21 +39,22 @@ function convert(e) {
 	// Все валюты сравниваются с гривной. Соответственно,
 	if (operation == 'b') {
 		if (c.cur_1 == 'uah') {
-			result = CurToUah(c.val_1, c.cur_2)
+			result = CurToUah(c.val_1, c.cur_2, c.cur_1)
 		}
 		else if (c.cur_2 == 'uah') {
 			result = UahToCur(c.val_1, c.cur_1)
 		} else {
-			result = CurToUah(UahToCur(c.val_1, c.cur_1), c.cur_2)
+			result = CurToUah(UahToCur(c.val_1, c.cur_1), c.cur_2, c.cur_1)
 		}
-	} else {
+	}
+	else {
 		if (c.cur_1 == 'uah') {
 			result = CurFromUah(c.val_1, c.cur_2)
 		}
 		else if (c.cur_2 == 'uah') {
-			result = UahFromCur(c.val_1, c.cur_1)
+			result = UahFromCur(c.val_1, c.cur_1, c.cur_2)
 		} else {
-			result = CurFromUah(UahFromCur(c.val_1, c.cur_1), c.cur_2)
+			result = CurFromUah(UahFromCur(c.val_1, c.cur_1, c.cur_2), c.cur_2)
 		}
 	}
 
@@ -63,24 +62,52 @@ function convert(e) {
 }
 
 $(document).on('click', 'button[name=calculate]', convert);
-
-function CurToUah(amount, currency) {
+// ПОКУПКА гривень
+function CurToUah(amount, currency, currency_2) {
 	rate = ExchangeRates[currency]['b']; // Сколько гривень дадут за 1 валюту
 	converted = amount / rate;
-	return (converted).toFixed(4)
+	if (currency_2 == "uah") {
+        if (amount > AvailableFunds[currency_2]) {
+            alert("Нехватка " + currency_2 + " в кассе!");
+        } else {
+            return (converted).toFixed(4)
+        }
+    }else {
+            return (converted).toFixed(4)
+	}
 }
+// покупка чего-то за гривны
 function UahToCur(amount, currency) {
 	rate = ExchangeRates[currency]['s']; // Сколько гривень стоит 1 валюта
 	converted = amount * rate;
-	return (converted).toFixed(4)
+	if ( amount > AvailableFunds[currency]) {
+		alert("Нехватка " + [currency] + " в кассе!!!");
+	} else {
+		return (converted).toFixed(4)
+	}
 }
+//ПРОДАЖА
 function CurFromUah(amount, currency) {
 	rate = ExchangeRates[currency]['s']; // Сколько гривень стоит 1 валюта
 	converted = amount / rate;
-	return (converted).toFixed(4)
+	if (converted > AvailableFunds[currency]) {
+		alert("Не хватает на  " + (converted).toFixed(2) +" "+ currency + " в кассе!");
+	} else {
+            return (converted).toFixed(4)
+	}
 }
-function UahFromCur(amount, currency) {
+function UahFromCur(amount, currency, currency_2) {
 	rate = ExchangeRates[currency]['b']; // Сколько гривень дадут за 1 валюту
 	converted = amount * rate;
-	return (converted).toFixed(4)
+	if (currency_2 == 'uah'){
+		if (converted > AvailableFunds[currency_2]) {
+			alert("Не хватает на  " + (converted).toFixed(2) +" "+ currency_2 + " в кассе!!");
+		} else {
+			return (converted).toFixed(4)
+		}
+	}
+	else {
+		return (converted).toFixed(5)
+	}
+
 }

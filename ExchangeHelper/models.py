@@ -81,3 +81,6 @@ class ExchangeRates(models.Model):
 	change_date = models.DateField()
 	# Время операции
 	change_time = models.TimeField()
+
+	def __str__(self):
+		return (self.cashbox ,"-", str(self.change_date)+', '+ str(self.change_time))

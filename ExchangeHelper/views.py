@@ -1,4 +1,4 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.contrib import auth
 from django.http import HttpResponseRedirect
 from .models import AdministratorCashCosts, ExchangeRates, OrdinaryCashier, \
@@ -166,13 +166,13 @@ def create(request):
 		return HttpResponseRedirect('/login/')
 	# Получение списка всех касс
 	users_list = OrdinaryCashier.objects.all()
-	error = ''
+	error = False
 
 	# Обработка форм
 	if request.POST:
 		user, created = User.objects.get_or_create(username = request.POST['username'])
 		if not created:
-			error = 'Пользователь с таким именем уже существует.'
+			error = True
 		else:
 			date = datetime.date.today()
 			# Создаём нового юзера
@@ -323,7 +323,6 @@ def view_cashbox(request, id):
 
 # Страница для изменения кассы
 def edit_cashbox(request, id):
-	# TODO Внести изменения в редактирования пароля касс т.к. не изменяет его
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
 	# Проверка прав доступа
@@ -339,8 +338,6 @@ def edit_cashbox(request, id):
 	if request.POST:
 		# Сохраняем данные
 		certain_cashbox.user.username = request.POST['username']
-		if request.POST['password']:
-			certain_cashbox.user.set_password(request.POST['password'])
 		certain_cashbox.cashier_description_full = request.POST['description_full']
 		certain_cashbox.cashier_description_short = request.POST['description_short']
 		certain_cashbox.save()
@@ -397,7 +394,11 @@ def cashbox_info_by_date(request):
 	# Получение определённой кассы
 
 	if request.POST:
+		# Если решил удалить операцию
+		if 'delete_operation' in request.POST:
+			return HttpResponseRedirect('/financial-statement/')
 		certain_cashbox = OrdinaryCashier.objects.get(id = request.POST['selected_cashbox'])
+		# Если юзер ввёл дату
 		if request.POST['date']:
 			date = datetime.datetime.strptime(request.POST['date'],'%Y-%m-%d')
 			# Получение данных транзакций и сумм валют определённой кассы за
@@ -423,6 +424,7 @@ def cashbox_info_by_date(request):
 			content['profit_balance'] = profit_calculation(
 								datetime.datetime.strptime(request.POST['date'],'%Y-%m-%d'),
 								certain_cashbox.id)
+		# если дату не ввёл
 		else:
 			# Получение данных транзакций и сумм валют определённой кассы
 			transaction_table_data = ExchangeActions.objects.filter(

@@ -1,6 +1,6 @@
 {% block content %}
     <div class="panel panel-default">
-        <table class="table table-bordered">
+        <table id="AvailableFundsTable" class="table table-bordered">
             <tr>
                 <th>Дата и время</th>
                 <th>UAH</th>
@@ -16,30 +16,68 @@
                 <tr class="info">
                     <td>Текущий остаток {{ actions[-1].action.operation_date }},
                         {{ actions[-1].action.operation_time }}</td>
-                    <td>{{ actions[-1].money_balance_data.uah }}</td>
-                    <td>{{ actions[-1].money_balance_data.usd }}</td>
-                    <td>{{ actions[-1].money_balance_data.eur }}</td>
-                    <td>{{ actions[-1].money_balance_data.rub }}</td>
-                    <td>{{ actions[-1].money_balance_data.cad }}</td>
-                    <td>{{ actions[-1].money_balance_data.chf }}</td>
-                    <td>{{ actions[-1].money_balance_data.gbp }}</td>
-                    <td>{{ actions[-1].money_balance_data.pln }}</td>
+                    <td >{{ actions[-1].money_balance_data.uah }}</td>
+                    <td >{{ actions[-1].money_balance_data.usd }}</td>
+                    <td >{{ actions[-1].money_balance_data.eur }}</td>
+                    <td >{{ actions[-1].money_balance_data.rub }}</td>
+                    <td >{{ actions[-1].money_balance_data.cad }}</td>
+                    <td >{{ actions[-1].money_balance_data.chf }}</td>
+                    <td >{{ actions[-1].money_balance_data.gbp }}</td>
+                    <td >{{ actions[-1].money_balance_data.pln }}</td>
                 </tr>
                 {% if actions[-1].money_balance_data.uah +
-                     actions[-1].money_balance_data.usd*exchange_rate_data.usd_buy +
-                     actions[-1].money_balance_data.eur*exchange_rate_data.eur_buy +
-                     actions[-1].money_balance_data.rub*exchange_rate_data.rub_buy +
-                     actions[-1].money_balance_data.cad*exchange_rate_data.cad_buy +
-                     actions[-1].money_balance_data.chf*exchange_rate_data.chf_buy +
-                     actions[-1].money_balance_data.gbp*exchange_rate_data.gbp_buy +
-                     actions[-1].money_balance_data.pln*exchange_rate_data.pln_buy > 5000
+                     actions[-1].money_balance_data.usd*exchange_rate_data.usd_sell +
+                     actions[-1].money_balance_data.eur*exchange_rate_data.eur_sell +
+                     actions[-1].money_balance_data.rub*exchange_rate_data.rub_sell +
+                     actions[-1].money_balance_data.cad*exchange_rate_data.cad_sell +
+                     actions[-1].money_balance_data.chf*exchange_rate_data.chf_sell +
+                     actions[-1].money_balance_data.gbp*exchange_rate_data.gbp_sell +
+                     actions[-1].money_balance_data.pln*exchange_rate_data.pln_sell >
+                     200000
                         %}
                     <div class="alert alert-danger">
                         <h4><strong>ВНИМАНИЕ !!!</strong></h4> <br>
-                        Сумма в кассе превышает допустимые значения
+                        Сумма в кассе превышает допустимые значения в 200.000 UAH.
                     </div>
                 {% endif %}
+                <script> window.AvailableFunds = {
+                                        uah: {{ actions[-1].money_balance_data.uah }} ,
+                                        usd: {{ actions[-1].money_balance_data.usd }} ,
+                                        eur: {{ actions[-1].money_balance_data.eur }} ,
+                                        rub: {{ actions[-1].money_balance_data.rub }} ,
+                                        cad: {{ actions[-1].money_balance_data.cad }} ,
+                                        chf: {{ actions[-1].money_balance_data.chf }} ,
+                                        gbp: {{ actions[-1].money_balance_data.gbp }} ,
+                                        pln: {{ actions[-1].money_balance_data.pln }} ,
+                                    }
+                </script>
+            {% endif %}
+            {% if not actions %}
+                <tr class="info">
+                    <td>Текущий остаток c {{ rest_money_data.date }}</td>
+                    <td >{{ rest_money_data.uah }}</td>
+                    <td >{{ rest_money_data.usd }}</td>
+                    <td >{{ rest_money_data.eur }}</td>
+                    <td >{{ rest_money_data.rub }}</td>
+                    <td >{{ rest_money_data.cad }}</td>
+                    <td >{{ rest_money_data.chf }}</td>
+                    <td >{{ rest_money_data.gbp }}</td>
+                    <td >{{ rest_money_data.pln }}</td>
+                </tr>
+                <script> window.AvailableFunds = {
+                    uah: { {{rest_money_data.uah}} },
+                    usd: { {{rest_money_data.usd}} },
+                    eur: { {{rest_money_data.eur}} },
+                    rub: { {{rest_money_data.rub}} },
+                    cad: { {{rest_money_data.cad}} },
+                    chf: { {{rest_money_data.chf}} },
+                    gbp: { {{rest_money_data.gbp}} },
+                    pln: { {{rest_money_data.pln}} }
+                }
+                </script>
             {% endif %}
         </table>
     </div>
+
+
 {% endblock %}

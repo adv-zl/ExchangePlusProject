@@ -41,14 +41,30 @@
             </tr>
             {% if actions %}
                 {% for action in actions %}
-                <tr>
+                <tr
+                        {% if ("У" == action.action_comment[0]) %}
+                            style="color: #ac2925"
+                        {% elif ("Increase" == action.action_type) %}
+                            style="color: #2b669a"
+                        {% elif ("Encashment" == action.action_type) %}
+                            style="color: #985f0d"
+                        {% elif ("Exchange" == action.action_type) %}
+                            style="color: #2b542c"
+                        {% endif %}
+                >
                     <td>{{ action.action.id }}</td>
                     <td>{{ action.action.operation_date }},
                         {{ action.action.operation_time }}</td>
                     {% if role %}
                         <td>{{ action.action.person_surname }}</td>
                     {% endif %}
-                    <td>{{ action.action_type}};
+                    <td>{% if ("Increase" == action.action_type) %}
+                            Подкрепление;
+                        {% elif ("Encashment" == action.action_type) %}
+                            Инкассация;
+                        {% elif ("Exchange" == action.action_type) %}
+                            Обменнная операция;
+                        {% endif %}
                         <p>{{ action.action_comment }}</p></td>
                     <td>{{ action.currency_changes.uah or '-' }}</td>
                     <td>{{ action.currency_changes.usd or '-' }}</td>
@@ -69,8 +85,7 @@
                                 </button>
                             </td>
                         </form>
-                    {% endif %}
-                    {% if not role or not action.action.possibility_of_operation %}
+                    {% elif not role or not action.action.possibility_of_operation %}
                         <td>
                             Невозможно
                         </td>
