@@ -44,6 +44,8 @@
                 <tr
                         {% if ("У" == action.action_comment[0]) %}
                             style="color: #ac2925"
+                        {% elif ("В" == action.action_comment[0]) %}
+                            style="color: #e38d13;"
                         {% elif ("Increase" == action.action_type) %}
                             style="color: #2b669a"
                         {% elif ("Encashment" == action.action_type) %}
@@ -61,9 +63,12 @@
                     <td>{% if ("Increase" == action.action_type) %}
                             Подкрепление;
                         {% elif ("Encashment" == action.action_type) %}
-                            Инкассация;
+                            {% if ("В" == action.action_comment[0]) %}
+                            {% else %}
+                                Инкассация;
+                            {% endif %}
                         {% elif ("Exchange" == action.action_type) %}
-                            Обменнная операция;
+                            Обмен;
                         {% endif %}
                         <p>{{ action.action_comment }}</p></td>
                     <td>{{ action.currency_changes.uah or '-' }}</td>

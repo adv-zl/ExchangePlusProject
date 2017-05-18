@@ -705,6 +705,32 @@ def count_result_of_action(request, cashbox_id):
 			# Модификация старой операции что бы её нельзя было больше удалять
 			deleted_action.possibility_of_operation = False
 			deleted_action.save()
+	# Обработка формы выделения денег кассе
+	elif 'cashbox_waste' in request.POST:
+		# Производим изменение баланса денег
+		# TODO Выцеплять ID админа кассы а не писать единицу
+		money_balance = change_money_balance('Encashment',
+											{
+												request.POST['currency']:
+												-float(request.POST['cashbox_waste_summ'])
+											},
+											1)
+		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
+		cashier_admin = get_object_or_404(OrdinaryCashier, id = 1)
+		ExchangeActions.objects.create(
+				operation_date = datetime.date.today(),
+				operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+				person_data = cashier_admin,
+				person_surname = request.session['0'],
+				money_balance = json.dumps(money_balance),
+				action_type = 'Encashment',
+				currency_changes = json.dumps({
+					request.POST['currency']:
+						-float(request.POST['cashbox_waste_summ'])
+				}),
+				comment = ("Выделение денег кассе - {0}; Коментарий: ".format(cashier)
+										+ re.sub(r'\s+', ' ', request.POST['comment']))
+		).save()
 
 
 # Получение информации о балансе за прошлый день

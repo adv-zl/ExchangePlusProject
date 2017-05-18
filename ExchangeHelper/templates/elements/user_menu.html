@@ -1,13 +1,13 @@
 {% block content %}
-
-        <div class="well bs-sidebar" id="sidebar" style="background-color:#fff">
-            <ul class="nav nav-pills nav-stacked">
-                {% if role %}
+    <div class="well bs-sidebar" id="sidebar" style="background-color:#fff">
+        <ul class="nav nav-pills nav-stacked">
+            {% if role %}
                 <li>
-                    <button style="width:220px;" type="button" class="btn btn-default"
+                    <button title="Выделение денег кассе для работы" style="width:220px;"
+                            type="button" class="btn btn-default"
                             data-toggle="modal" data-target="#Support">
                         <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
-                            Подкрепление
+                        Подкрепление
                     </button>
                     <div class="modal fade" id="Support" tabindex="-1" role="dialog"
                          aria-labelledby="myModalLabel">
@@ -19,8 +19,9 @@
                     </div>
                 </li>
                 <li>
-                    <button style="width:220px;" type="button" class="btn btn-default"
-                            data-toggle="modal" data-target="#Encashment">
+                    <button title="Инкассация определённой суммы" style="width:220px;"
+                            type="button" class="btn btn-default" data-toggle="modal"
+                            data-target="#Encashment">
                         <span class="glyphicon glyphicon-minus" aria-hidden="true"></span>
                         Инкассация
                     </button>
@@ -33,13 +34,28 @@
                         </div>
                     </div>
                 </li>
+                <li>
+                    <button title="Выделение деенег на нужды кассы" style="width:220px;"
+                            type="button" class="btn btn-default"
+                            data-toggle="modal" data-target="#CashboxWaste">
+                        <span class="glyphicon glyphicon-leaf" aria-hidden="true"></span>
+                        Траты на кассу
+                    </button>
+                    <div class="modal fade" id="CashboxWaste" tabindex="-1" role="dialog"
+                         aria-labelledby="myModalLabel">
+                        <div class="modal-dialog" role="document">
+                            {% block cashbox_waste %}
+                                {% include 'forms/cashbox_waste.html' %}
+                            {% endblock %}
+                        </div>
+                    </div>
+                </li>
                 {% endif %}
                 <li>
                     {% block special_operation %}
                         {% include 'elements/special_operation.html' %}
                     {% endblock %}
                 </li>
-            </ul>
-        </div>
-
+        </ul>
+    </div>
 {% endblock %}
