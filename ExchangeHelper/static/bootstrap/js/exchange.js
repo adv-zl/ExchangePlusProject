@@ -73,7 +73,7 @@ function CurToUah(amount, currency, currency_2) {
             return (converted).toFixed(2)
         }
     }else {
-            return (converted).toFixed(2)
+            return (converted).toFixed(4)
 	}
 }
 // покупка чего-то за гривны

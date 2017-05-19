@@ -1,8 +1,8 @@
 import schedule
 import sqlite3, os, datetime, time
 
+
 def main():
-	# TODO Организовать заупск скрипта раз в день и привязать его к дажнге или отдельным скриптом устроить
 	# Изменение рабочей директории
 	os.chdir('/'.join(os.getcwd().split('/')[:-2]))
 	# Подключение к БД
