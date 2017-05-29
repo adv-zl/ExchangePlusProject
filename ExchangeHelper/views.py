@@ -266,7 +266,8 @@ def view_cashbox(request, id):
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
 	content['user_inform'] = certain_cashbox
 	# Вычисление прибыли кассы
-	content['profit_balance'] = profit_calculation(date, id)
+	content['profit_balance'], content['profit_currencies_balance'] = profit_calculation(
+			date, id)
 	# Получение данных транзакций и сумм валют определённой кассы
 	transaction_table_data = ExchangeActions.objects.filter(person_data__id = id,
 															operation_date = date)
@@ -424,9 +425,10 @@ def cashbox_info_by_date(request):
 														change_date = date
 														).order_by('-id'))[0]
 			# Вычисление прибыли кассы
-			content['profit_balance'] = profit_calculation(
-								datetime.datetime.strptime(request.POST['date'],'%Y-%m-%d'),
-								certain_cashbox.id)
+			content['profit_balance'], content['profit_currencies_balance'] = \
+				profit_calculation(datetime.datetime.strptime(request.POST['date'],'%Y-%m-%d'),
+									certain_cashbox.id)
+
 		# если дату не ввёл
 		else:
 			# Получение данных транзакций и сумм валют определённой кассы
@@ -447,7 +449,8 @@ def cashbox_info_by_date(request):
 			exchange_rate_info = ExchangeRates.objects.filter(cashbox_id = certain_cashbox.id
 																).order_by('-id')[0]
 			# Вычисление прибыли кассы
-			content['profit_balance'] = profit_calculation(datetime.datetime.today(),
+			content['profit_balance'], content['profit_currencies_balance'] = \
+				profit_calculation(datetime.datetime.today(),
 															certain_cashbox.id)
 		# Записываем все действия в список
 		actions = []
@@ -825,8 +828,9 @@ def profit_calculation(date, id):
 	:return: Возвращает в словаря сумму всего наторгованного в кассе по определённой дате
 	"""
 	# TODO добавить подсчёт прибыли
+	profit_balance = 0
 	# Профицит за день
-	profit_balance = {
+	profit_currencies_balance = {
 						"uah": 0,
 						"usd": 0,
 						"eur": 0,
@@ -836,7 +840,7 @@ def profit_calculation(date, id):
 						"gbp": 0,
 						"pln": 0,
 					}
-	# Получение списка всех операций данной кассы в данный день
+	# Получение списка всех обменных операций данной кассы в данный день
 	exchange_data = ExchangeActions.objects.filter(person_data__id = id,
 													operation_date = date,
 													action_type = 'Exchange',)
@@ -845,8 +849,14 @@ def profit_calculation(date, id):
 												.order_by('-id'))[0].exchange_rate)
 	for operation in exchange_data:
 		for key in json.loads(operation.currency_changes).keys():
-			# Вносим изменения в профицит
-			profit_balance[key] = round(float(profit_balance[key])
+			# Подсчитываем профицит общий
+			if key == 'uah':
+				profit_balance += float(json.loads(operation.currency_changes)[key])
+			else:
+				profit_balance += exchange_rate[key+'_sell'] * \
+										float(json.loads(operation.currency_changes)[key])
+			# Вносим изменения в профицит по валютам
+			profit_currencies_balance[key] = round(float(profit_currencies_balance[key])
 									+ float(json.loads(operation.currency_changes)[key]), 3)
 
-	return profit_balance
+	return round(profit_balance, 2), profit_currencies_balance

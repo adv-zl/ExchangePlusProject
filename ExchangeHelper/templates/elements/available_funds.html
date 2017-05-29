@@ -25,21 +25,17 @@
                     <td >{{ actions[-1].money_balance_data.gbp }}</td>
                     <td >{{ actions[-1].money_balance_data.pln }}</td>
                 </tr>
-                {% if actions[-1].money_balance_data.uah +
+                <tr>
+                    <td>В пересчёте на гривны вы имеете</td>
+                    <td >{{ actions[-1].money_balance_data.uah +
                      actions[-1].money_balance_data.usd*exchange_rate_data.usd_sell +
                      actions[-1].money_balance_data.eur*exchange_rate_data.eur_sell +
                      actions[-1].money_balance_data.rub*exchange_rate_data.rub_sell +
                      actions[-1].money_balance_data.cad*exchange_rate_data.cad_sell +
                      actions[-1].money_balance_data.chf*exchange_rate_data.chf_sell +
                      actions[-1].money_balance_data.gbp*exchange_rate_data.gbp_sell +
-                     actions[-1].money_balance_data.pln*exchange_rate_data.pln_sell >
-                     200000
-                        %}
-                    <div class="alert alert-danger">
-                        <h4><strong>ВНИМАНИЕ !!!</strong></h4> <br>
-                        Сумма в кассе превышает допустимые значения в 200.000 UAH.
-                    </div>
-                {% endif %}
+                     actions[-1].money_balance_data.pln*exchange_rate_data.pln_sell  }}</td>
+                </tr>
                 <script> window.AvailableFunds = {
                                         uah: {{ actions[-1].money_balance_data.uah }} ,
                                         usd: {{ actions[-1].money_balance_data.usd }} ,
@@ -63,6 +59,17 @@
                     <td >{{ rest_money_data.chf }}</td>
                     <td >{{ rest_money_data.gbp }}</td>
                     <td >{{ rest_money_data.pln }}</td>
+                </tr>
+                <tr>
+                    <td>В пересчёте на гривны вы имеете</td>
+                    <td >{{ rest_money_data.uah +
+                     rest_money_data.usd * exchange_rate_data.usd_sell +
+                     rest_money_data.eur * exchange_rate_data.eur_sell +
+                     rest_money_data.rub * exchange_rate_data.rub_sell +
+                     rest_money_data.cad * exchange_rate_data.cad_sell +
+                     rest_money_data.chf * exchange_rate_data.chf_sell +
+                     rest_money_data.gbp * exchange_rate_data.gbp_sell +
+                     rest_money_data.pln * exchange_rate_data.pln_sell  }}</td>
                 </tr>
                 <script> window.AvailableFunds = {
                     uah: { {{rest_money_data.uah}} },

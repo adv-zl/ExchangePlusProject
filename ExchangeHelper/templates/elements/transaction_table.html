@@ -135,29 +135,20 @@
         <tr>
             {% if actions %}
                 <td>Прибыль {{ actions[-1].action.operation_date }}</td>
-                <td>{{ profit_balance.uah }}</td>
-                <td>{{ profit_balance.usd }}</td>
-                <td>{{ profit_balance.eur }}</td>
-                <td>{{ profit_balance.rub }}</td>
-                <td>{{ profit_balance.cad }}</td>
-                <td>{{ profit_balance.chf }}</td>
-                <td>{{ profit_balance.gbp }}</td>
-                <td>{{ profit_balance.pln }}</td>
+                <td>{{ profit_currencies_balance.uah }}</td>
+                <td>{{ profit_currencies_balance.usd }}</td>
+                <td>{{ profit_currencies_balance.eur }}</td>
+                <td>{{ profit_currencies_balance.rub }}</td>
+                <td>{{ profit_currencies_balance.cad }}</td>
+                <td>{{ profit_currencies_balance.chf }}</td>
+                <td>{{ profit_currencies_balance.gbp }}</td>
+                <td>{{ profit_currencies_balance.pln }}</td>
             {% endif %}
         </tr>
         <tr class="success" >
             <td>И того, чистая прибыль составила</td>
             <td>
-                {{
-                        profit_balance.uah +
-                        profit_balance.usd*exchange_rate_data.usd_sell +
-                        profit_balance.eur*exchange_rate_data.eur_sell +
-                        profit_balance.rub*exchange_rate_data.rub_sell +
-                        profit_balance.cad*exchange_rate_data.cad_sell +
-                        profit_balance.chf*exchange_rate_data.chf_sell +
-                        profit_balance.gbp*exchange_rate_data.gbp_sell +
-                        profit_balance.pln*exchange_rate_data.pln_sell
-                        }} UAH
+                {{ profit_balance }} UAH
             </td>
         </tr>
     </table>
