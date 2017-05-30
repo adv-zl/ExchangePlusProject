@@ -470,6 +470,7 @@ def cashbox_info_by_date(request):
 		content['exchange_rate_data'] = exchange_rate_data
 		content['exchange_rate_info'] = exchange_rate_info
 		content['data'] = True
+		content['role'] = False
 
 	return render(request, 'base.html', content)
 
@@ -565,7 +566,7 @@ def count_result_of_action(request, cashbox_id):
 		if operation_type == 's':
 			# Операция продажи
 			put_summ = -float(request.POST['summ_2'])
-			put_currency = request.POST['currency_2']
+			put_currency = 'uah'
 			# Сумма и валюта которую получим от покупателя
 			get_summ = float(request.POST['summ_1'])
 			get_currency = request.POST['currency_1']
@@ -577,7 +578,7 @@ def count_result_of_action(request, cashbox_id):
 			put_currency = request.POST['currency_1']
 			# Сумма и валюта которую получим от покупателя
 			get_summ = float(request.POST['summ_2'])
-			get_currency = request.POST['currency_2']
+			get_currency = 'uah'
 
 		# Изменяем баланс денег в кассе
 		money_balance = change_money_balance('Exchange',
@@ -827,7 +828,6 @@ def profit_calculation(date, id):
 	:param id: Получает ID кассы и так же делает выборку по нему и параметру даты
 	:return: Возвращает в словаря сумму всего наторгованного в кассе по определённой дате
 	"""
-	# TODO добавить подсчёт прибыли
 	profit_balance = 0
 	# Профицит за день
 	profit_currencies_balance = {

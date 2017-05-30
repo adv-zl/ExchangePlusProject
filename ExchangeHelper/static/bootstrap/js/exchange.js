@@ -1,14 +1,14 @@
 function handleOperationChange() {
 	if ($(this).val() == 's') {
-		$('.val_1_desc').html('Вносимая сумма(заплатит покупатель)');
-		$('.val_2_desc').html('Полученная сумма(получит покупатель)');
-		$('.cur_1_desc').html('Выберите валюту для покупки');
-		$('.cur_2_desc').html('Выберите вносимую валюту');
+		$('.val_1_desc').html('Сумма для покупки-получения');
+		$('.val_2_desc').html('Сумма для продажи-выдачи, грн');
+		$('.cur_1_desc').html('Валюта для покупки-получения');
+		$('.cur_2_desc').html('Валюта для продажи-выдачи');
 	} else {
-		$('.val_1_desc').html('Введите сумму для покупки(получит покупатель)');
-		$('.val_2_desc').html('Вносимая сумма(заплатит покупатель)');
-		$('.cur_1_desc').html('Выберите валюту для покупки');
-		$('.cur_2_desc').html('Выберите вносимую валюту');
+		$('.val_1_desc').html('Сумма для продажи-выдачи');
+		$('.val_2_desc').html('Сумма для покупки-получения, грн');
+		$('.cur_1_desc').html('Валюта для продажи-выдачи');
+		$('.cur_2_desc').html('Валюта для покупки-получения');
 	}
 }
 
@@ -31,21 +31,13 @@ function convert(e) {
 		return false;
 	}
 	// Можно задоджить если дать изначальное значение инпуту или аттрибут required
-	if (c.val_1 == null) {
+	if (c.val_1 == 0 || c.val_1 == null) {
 		alert('Введите значение');
 		return false;
 	}
-
 	// Все валюты сравниваются с гривной. Соответственно,
-	if (operation == 'b') {
-		if (c.cur_1 == 'uah') {
-			result = CurToUah(c.val_1, c.cur_2, c.cur_1)
-		}
-		else if (c.cur_2 == 'uah') {
-			result = UahToCur(c.val_1, c.cur_1)
-		} else {
-			result = CurToUah(UahToCur(c.val_1, c.cur_1), c.cur_2, c.cur_1)
-		}
+	if (operation == 'b'){
+		result = UahToCur(c.val_1, c.cur_1)
 	}
 	else {
 		if (c.cur_1 == 'uah') {
@@ -57,7 +49,6 @@ function convert(e) {
 			result = CurFromUah(UahFromCur(c.val_1, c.cur_1, c.cur_2), c.cur_2)
 		}
 	}
-
 	$('.val_2').val(result)
 }
 
