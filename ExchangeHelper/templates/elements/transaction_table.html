@@ -52,7 +52,7 @@
                         {% elif ("Encashment" == action.action_type) %}
                             style="color: #985f0d"
                         {% elif ("Exchange" == action.action_type) %}
-                            style="color: #2b542c"
+                            style="color: #2b542c" title="Прибыль от операции: {{ action.operation_profit }} UAH"
                         {% endif %}
                 >
                     <td>{{ action.action.id }}</td>

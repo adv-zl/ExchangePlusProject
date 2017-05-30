@@ -563,29 +563,26 @@ def count_result_of_action(request, cashbox_id):
 	elif 'check' in request.POST:
 		result["action"] = 'Exchange'
 		operation_type = request.POST['operation']
-		if operation_type == 's':
-			# Операция продажи
-			put_summ = -float(request.POST['summ_2'])
-			put_currency = 'uah'
-			# Сумма и валюта которую получим от покупателя
-			get_summ = float(request.POST['summ_1'])
-			get_currency = request.POST['currency_1']
 
+		# Операция покупки валюты за гривны
+		if operation_type == 's':
+			currency_changes = json.dumps({
+				'uah': -float(request.POST['summ_2']),
+				request.POST['currency_1']: float(request.POST['summ_1'])
+			})
+			operation_profit = get_operation_profit(json.loads(currency_changes),
+													cashbox_id)
+		# Операция продажи валюты населению
 		elif operation_type == 'b':
-			# Операция покупки валюты у населения
-			# Сумма и валюта которую отдадим покупателю
-			put_summ = -float(request.POST['summ_1'])
-			put_currency = request.POST['currency_1']
-			# Сумма и валюта которую получим от покупателя
-			get_summ = float(request.POST['summ_2'])
-			get_currency = 'uah'
+			currency_changes = json.dumps({
+				request.POST['currency_1']: -float(request.POST['summ_1']),
+				'uah': float(request.POST['summ_2'])
+			})
+			operation_profit = 0
 
 		# Изменяем баланс денег в кассе
 		money_balance = change_money_balance('Exchange',
-											{
-												put_currency: put_summ,
-												get_currency: get_summ,
-											},
+											json.loads(currency_changes),
 											cashbox_id)
 		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 		# Создаём новую операцию
@@ -596,11 +593,9 @@ def count_result_of_action(request, cashbox_id):
 				person_surname = request.session['0'],
 				money_balance = json.dumps(money_balance),
 				action_type = 'Exchange',
-				currency_changes = json.dumps({
-					put_currency: put_summ,
-					get_currency: get_summ
-				}),
-				comment = 'Обменная операция.'
+				currency_changes = currency_changes,
+				comment = 'Обменная операция.',
+				operation_profit = operation_profit,
 		).save()
 	# Удаление операций
 	elif 'delete_operation' in request.POST:
@@ -828,6 +823,8 @@ def profit_calculation(date, id):
 	:param id: Получает ID кассы и так же делает выборку по нему и параметру даты
 	:return: Возвращает в словаря сумму всего наторгованного в кассе по определённой дате
 	"""
+	# TODO ПОдсчитывать прибыль от операций сразу на момент проведения обменной
+	# операции и сразу сохранять результат в БД
 	profit_balance = 0
 	# Профицит за день
 	profit_currencies_balance = {
@@ -844,19 +841,25 @@ def profit_calculation(date, id):
 	exchange_data = ExchangeActions.objects.filter(person_data__id = id,
 													operation_date = date,
 													action_type = 'Exchange',)
-	# Получение последнего актуального курса для кассы на определённую дату
-	exchange_rate = json.loads((ExchangeRates.objects.filter(cashbox__id = id)
-												.order_by('-id'))[0].exchange_rate)
 	for operation in exchange_data:
+		# Подсчитываем профицит общий
+		profit_balance += operation.operation_profit
 		for key in json.loads(operation.currency_changes).keys():
-			# Подсчитываем профицит общий
-			if key == 'uah':
-				profit_balance += float(json.loads(operation.currency_changes)[key])
-			else:
-				profit_balance += exchange_rate[key+'_sell'] * \
-										float(json.loads(operation.currency_changes)[key])
 			# Вносим изменения в профицит по валютам
 			profit_currencies_balance[key] = round(float(profit_currencies_balance[key])
 									+ float(json.loads(operation.currency_changes)[key]), 3)
 
-	return round(profit_balance, 2), profit_currencies_balance
+	return profit_balance, profit_currencies_balance
+
+
+# Получение чистой прибыли отдельной операции
+def get_operation_profit(currency_changes, cashbox_id):
+	operation_profit = 0
+	exchange_rate = json.loads((ExchangeRates.objects.filter(cashbox__id = cashbox_id)
+								.order_by('-id'))[0].exchange_rate)
+	for key in currency_changes.keys():
+		if key == 'uah':
+			operation_profit += currency_changes[key]
+		else:
+			operation_profit += round(exchange_rate[key+'_sell'] * currency_changes[key], 2)
+	return operation_profit

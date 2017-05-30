@@ -37,6 +37,8 @@ class ExchangeActions(models.Model):
 	# 'currency_put': 'summ' <0
 	# }
 	currency_changes = models.CharField(max_length = 100)
+	# ПРибыль от обменно операции
+	operation_profit = models.FloatField(default = 0)
 
 	# Коментарий к событию
 	comment = models.CharField(max_length = 200)
