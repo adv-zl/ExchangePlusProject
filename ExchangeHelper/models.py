@@ -11,7 +11,7 @@ class OrdinaryCashier(models.Model):# Логин кассира
 	cashier_description_short = models.CharField(max_length = 100)
 
 	def __str__(self):
-		return self.cashier_description_short
+		return str(self.cashier_description_short)
 
 
 # Таблица действий юзера и учёта суммы денег
@@ -39,15 +39,20 @@ class ExchangeActions(models.Model):
 	currency_changes = models.CharField(max_length = 100)
 	# ПРибыль от обменно операции
 	operation_profit = models.FloatField(default = 0)
-
+	# Сюда будут записываться используемые валюты/сумма/курс в формате:
+	# currency:{
+	#			{value:rate},
+	#			...
+	# }
+	used_increases = models.CharField(max_length = 200, default = '')
 	# Коментарий к событию
 	comment = models.CharField(max_length = 200)
 	# Активна ли операция, если да то она поерация обмена иона не удалённая
 	possibility_of_operation = models.BooleanField(default = True)
 
 	def __str__(self):
-		return (self.action_type +' - '+str(self.operation_date)+', '+ str(
-				self.operation_time))
+		return str(self.action_type) +' - '+str(self.operation_date)+', '+ str(
+				self.operation_time)
 
 
 # Записки для односторонней связи кассир->админ и для записей трат администратора
@@ -70,7 +75,7 @@ class AdministratorCashCosts(models.Model):
 	waste_time = models.TimeField()
 
 	def __str__(self):
-		return self.waste_reason
+		return str(self.waste_reason)
 
 
 # Курсы валют
@@ -85,4 +90,29 @@ class ExchangeRates(models.Model):
 	change_time = models.TimeField()
 
 	def __str__(self):
-		return (self.cashbox ,"-", str(self.change_date)+', '+ str(self.change_time))
+		return str(self.cashbox.cashier_description_short)+" - "+ str(
+				self.change_date)+', '+ str(self.change_time)
+
+
+# Операции пополнения
+class IncreaseOperations(models.Model):
+	# Дата операции
+	operation_date = models.DateField()
+	# Время операции
+	operation_time = models.TimeField()
+	# Данные кассы
+	person_data = models.ForeignKey(OrdinaryCashier)
+	# ФИО кассира проведшего операцию
+	person_surname = models.CharField(max_length = 20)
+
+	# Курс по которому зачисленна валюта
+	increase_exchange_rate = models.FloatField(default = 0)
+	# Тип зачисленной валюты
+	increase_currency = models.CharField(max_length = 5)
+	# Зачисленная сумма
+	increase_summ = models.FloatField()
+
+	# Коментарий к событию
+	comment = models.CharField(max_length = 200)
+	# Активна ли операция, если да то она поерация обмена иона не удалённая
+	possibility_of_operation = models.BooleanField(default = True)
