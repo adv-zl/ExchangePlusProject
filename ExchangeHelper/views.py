@@ -726,6 +726,26 @@ def count_result_of_action(request, cashbox_id):
 			# Модификация старой операции что бы её нельзя было больше удалять
 			deleted_action.possibility_of_operation = False
 			deleted_action.save()
+			try:
+				# Возврат суммы в кассу с определённым курсом
+				used_increases = json.loads(deleted_action.used_increases)
+				currency = used_increases.pop('currency')
+				for value in used_increases.keys():
+						IncreaseOperations(
+								person_data = get_object_or_404(OrdinaryCashier,
+																id = cashbox_id),
+								person_surname = request.session['0'],
+								increase_exchange_rate = used_increases[value],
+								increase_currency = currency,
+								increase_summ = -float(value),
+								comment = 'Возврат средств.',
+								operation_date = datetime.date.today(),
+								operation_time = datetime.datetime.now().strftime(
+										"%H:%M:%S"),
+						).save()
+			except:
+				pass
+
 	# Обработка формы выделения денег кассе
 	elif 'cashbox_waste' in request.POST:
 		# Производим изменение баланса денег
@@ -870,7 +890,7 @@ def profit_calculation(date, id):
 
 # Получение чистой прибыли отдельной операции
 def get_operation_profit(currency_changes, cashbox_id):
-	used_increases = []
+	used_increases = {}
 	operation_profit = 0
 	exchange_rate = json.loads((ExchangeRates.objects.filter(cashbox__id = cashbox_id)
 														.order_by('-id'))[0].exchange_rate)
@@ -895,13 +915,9 @@ def get_operation_profit(currency_changes, cashbox_id):
 					modified_operation = get_object_or_404(IncreaseOperations,
 															id = increase_operations[i].id)
 					# СОхраняем сумму за которую была произведена операиця и её курс
-					used_increases += [json.dumps(
-							{
-								key: {
-									currency_changes[key]:
-									increase_operations[i].increase_exchange_rate
-								}
-							})]
+					used_increases['currency'] = key
+					used_increases[currency_changes[key]] = increase_operations[i].increase_exchange_rate
+
 					modified_operation.increase_summ = increase_operations[i].increase_summ \
 														+ currency_changes[key]
 					modified_operation.save()
@@ -919,13 +935,8 @@ def get_operation_profit(currency_changes, cashbox_id):
 					currency_changes[key] = increase_operations[i].increase_summ \
 																	+ currency_changes[key]
 					# СОхраняем сумму за которую была произведена операиця и её курс
-					used_increases += [json.dumps(
-							{
-								key: {
-									currency_changes[key]: increase_operations[
-										i].increase_exchange_rate
-								}
-							})]
+					used_increases['currency'] = key
+					used_increases[currency_changes[key]] = increase_operations[i].increase_exchange_rate
 					# Удаляем потраченные средства
 					modified_operation = get_object_or_404(IncreaseOperations,
 															id = increase_operations[i].id)
@@ -938,19 +949,14 @@ def get_operation_profit(currency_changes, cashbox_id):
 											* increase_operations[i].increase_exchange_rate,
 											2)
 					# СОхраняем сумму за которую была произведена операиця и её курс
-					used_increases += [json.dumps(
-							{
-								key: {
-									currency_changes[key]: increase_operations[
-										i].increase_exchange_rate
-								}
-							})]
+					used_increases['currency'] = key
+					used_increases[currency_changes[key]] = increase_operations[i].increase_exchange_rate
 					# Удаляем потраченные средства
 					modified_operation = get_object_or_404(IncreaseOperations,
 														id = increase_operations[i].id)
 					modified_operation.delete()
 					break
-	return operation_profit, used_increases
+	return operation_profit, json.dumps(used_increases)
 
 
 # СОхраняем в прибыток валюту полученную при покупке и курс
