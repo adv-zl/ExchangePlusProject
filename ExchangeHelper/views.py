@@ -749,18 +749,16 @@ def count_result_of_action(request, cashbox_id):
 	# Обработка формы выделения денег кассе
 	elif 'cashbox_waste' in request.POST:
 		# Производим изменение баланса денег
-		# TODO Выцеплять ID админа кассы а не писать единицу
-		# Сейчас админская касса имет ID 9!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		money_balance = change_money_balance('Encashment',
 											{
 												request.POST['currency']:
 												-float(request.POST['cashbox_waste_summ'])
 											},
-											1)
+											request.user.id)
 		if not money_balance:
 			return False
 		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
-		cashier_admin = get_object_or_404(OrdinaryCashier, id = 1)
+		cashier_admin = get_object_or_404(OrdinaryCashier, id = request.user.id)
 		ExchangeActions.objects.create(
 				operation_date = datetime.date.today(),
 				operation_time = datetime.datetime.now().strftime("%H:%M:%S"),

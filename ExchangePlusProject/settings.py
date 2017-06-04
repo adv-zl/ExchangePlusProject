@@ -78,7 +78,6 @@ WSGI_APPLICATION = 'ExchangePlusProject.wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.10/ref/settings/#databases
-# TODO сменить БД на постгрес
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
