@@ -750,7 +750,7 @@ def count_result_of_action(request, cashbox_id):
 	elif 'cashbox_waste' in request.POST:
 		# Производим изменение баланса денег
 		# TODO Выцеплять ID админа кассы а не писать единицу
-		# Сейчас админская касса имет ID 10!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		# Сейчас админская касса имет ID 9!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 		money_balance = change_money_balance('Encashment',
 											{
 												request.POST['currency']:
@@ -956,7 +956,7 @@ def get_operation_profit(currency_changes, cashbox_id):
 														id = increase_operations[i].id)
 					modified_operation.delete()
 					break
-	return operation_profit, json.dumps(used_increases)
+	return round(operation_profit, 2), json.dumps(used_increases)
 
 
 # СОхраняем в прибыток валюту полученную при покупке и курс
