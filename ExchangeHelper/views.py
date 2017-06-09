@@ -1,7 +1,7 @@
 from django.shortcuts import render, get_object_or_404
 from django.contrib import auth
 from django.http import HttpResponseRedirect
-from .models import AdministratorCashCosts, ExchangeRates, OrdinaryCashier, \
+from .models import AdministratorScraps, ExchangeRates, OrdinaryCashier, \
 	ExchangeActions, User, IncreaseOperations
 import json
 import datetime
@@ -26,7 +26,7 @@ def index(request):
 	if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		role = True
 		# ПОлучение списка всех записок
-		admin_messages = len(AdministratorCashCosts.objects.all())
+		admin_messages = len(AdministratorScraps.objects.all())
 	else:
 		person = OrdinaryCashier.objects.filter(user__username = request.user.username)
 		person = person[0]
@@ -92,9 +92,9 @@ def login(request):
 		user = auth.authenticate(username = username, password = password)
 		if user is not None and user.is_active:
 			auth.login(request, user)
-			person = OrdinaryCashier.objects.filter(user__username = username)
+			person = get_object_or_404(OrdinaryCashier, user__username = username)
 			# Перенаправляем на страницу кассы
-			return HttpResponseRedirect('/view-cashbox/{0}'.format(person[0].id))
+			return HttpResponseRedirect('/view-cashbox/{0}'.format(person.id))
 		else:
 			content['error'] = 'Неверный логин или пароль!'
 			return render(request, 'base.html', content)
@@ -118,9 +118,9 @@ def private(request):
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
 	# ПОлучение списка всех записок
-	admin_messages = len(AdministratorCashCosts.objects.all())
+	admin_messages = len(AdministratorScraps.objects.all())
 	# Получение списка записок/трат
-	waste_list = AdministratorCashCosts.objects.all().order_by('-id')
+	waste_list = AdministratorScraps.objects.all().order_by('-id')
 	if not waste_list:
 		waste_list = None
 
@@ -128,7 +128,7 @@ def private(request):
 	if request.POST:
 		# добавление записи
 		if 'wasting_money_btn' in request.POST:
-			AdministratorCashCosts(
+			AdministratorScraps(
 					waste_cashbox = OrdinaryCashier.objects.get(user__username = request.user.username),
 					waste_author = request.session['0'],
 					waste_reason = request.POST['wasting_reason'],
@@ -141,7 +141,7 @@ def private(request):
 			return HttpResponseRedirect('/private/')
 		# удаление записи
 		elif 'delete_waste' in request.POST:
-			AdministratorCashCosts.objects.get(id = request.POST['delete_waste']).delete()
+			AdministratorScraps.objects.get(id = request.POST['delete_waste']).delete()
 			return HttpResponseRedirect('/private/')
 
 	content = {
@@ -246,7 +246,7 @@ def view_cashbox(request, id):
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
 	# ПОлучение списка всех записок
-	admin_messages = len(AdministratorCashCosts.objects.all())
+	admin_messages = len(AdministratorScraps.objects.all())
 
 	# Список событий
 	actions = []
@@ -303,7 +303,7 @@ def view_cashbox(request, id):
 			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
 		# Обработка формы создания записки
 		elif 'wasting_money_btn' in request.POST:
-			AdministratorCashCosts(
+			AdministratorScraps(
 					waste_cashbox = get_object_or_404(OrdinaryCashier, id = id),
 					waste_author = request.session['0'],
 					waste_reason = request.POST['wasting_reason'],
@@ -333,7 +333,7 @@ def edit_cashbox(request, id):
 	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		return HttpResponseRedirect('/index/')
 	# ПОлучение списка всех записок
-	admin_messages = len(AdministratorCashCosts.objects.all())
+	admin_messages = len(AdministratorScraps.objects.all())
 	# Получение определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
 	exchange_rate = json.loads(ExchangeRates.objects.filter(cashbox = certain_cashbox)
@@ -377,7 +377,7 @@ def cashbox_info_by_date(request):
 	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
 		return HttpResponseRedirect('/index/')
 	# ПОлучение списка всех записок
-	admin_messages = len(AdministratorCashCosts.objects.all())
+	admin_messages = len(AdministratorScraps.objects.all())
 	# Получение списка всех касс
 	cashbox_list = OrdinaryCashier.objects.all()
 	# Создание пустого списка курсов валют
@@ -408,9 +408,8 @@ def cashbox_info_by_date(request):
 			# Получение данных транзакций и сумм валют определённой кассы за
 			# определённую дату
 			transaction_table_data = ExchangeActions.objects.filter(
-																	person_data = certain_cashbox,
-																	operation_date = date
-																	)
+															person_data = certain_cashbox,
+															operation_date = date)
 			# Если по зпдпнной юзером дате нет никакой итнформации
 			if not transaction_table_data:
 				content['doc'] = 'mistakes/wrong_date.html'
@@ -419,11 +418,15 @@ def cashbox_info_by_date(request):
 				return render(request, 'base.html', content)
 
 			content['rest_money_data'] = get_rest_money(certain_cashbox.id, date)
+			try:
+				exchange_rate_info = (ExchangeRates.objects.filter(
+															cashbox_id = certain_cashbox.id,
+															change_date = date
+															).order_by('-id'))[0]
+			except:
+				content['doc'] = 'mistakes/wrong_date.html'
+				content['data'] = True
 
-			exchange_rate_info = (ExchangeRates.objects.filter(
-														cashbox_id = certain_cashbox.id,
-														change_date = date
-														).order_by('-id'))[0]
 			# Вычисление прибыли кассы
 			content['profit_balance'], content['profit_currencies_balance'] = \
 				profit_calculation(datetime.datetime.strptime(request.POST['date'],'%Y-%m-%d'),
@@ -433,9 +436,8 @@ def cashbox_info_by_date(request):
 		else:
 			# Получение данных транзакций и сумм валют определённой кассы
 			transaction_table_data = ExchangeActions.objects.filter(
-													person_data = certain_cashbox,
-													operation_date = datetime.datetime.today()
-													)
+												person_data = certain_cashbox,
+												operation_date = datetime.datetime.today())
 			# Если по зпдпнной юзером дате нет никакой итнформации
 			if not transaction_table_data:
 				content['doc'] = 'mistakes/wrong_date.html'
@@ -446,8 +448,8 @@ def cashbox_info_by_date(request):
 			content['rest_money_data'] = get_rest_money(certain_cashbox.id,
 														datetime.datetime.today())
 
-			exchange_rate_info = ExchangeRates.objects.filter(cashbox_id = certain_cashbox.id
-																).order_by('-id')[0]
+			exchange_rate_info = ExchangeRates.objects.filter(
+										cashbox_id = certain_cashbox.id).order_by('-id')[0]
 			# Вычисление прибыли кассы
 			content['profit_balance'], content['profit_currencies_balance'] = \
 				profit_calculation(datetime.datetime.today(),
@@ -475,33 +477,11 @@ def cashbox_info_by_date(request):
 	return render(request, 'base.html', content)
 
 
-# Получаем значения курсов валют со страницы
-def get_exchange_rate(request):
-	"""
-	
-	:param request: 
-	:return: 
-	"""
-	return json.dumps({
-				"usd_buy": float(request.POST['usd_buy']),
-				"usd_sell": float(request.POST['usd_sell']),
-				"eur_buy": float(request.POST['eur_buy']),
-				"eur_sell": float(request.POST['eur_sell']),
-				"rub_buy": float(request.POST['rub_buy']),
-				"rub_sell": float(request.POST['rub_sell']),
-				"cad_buy": float(request.POST['cad_buy']),
-				"cad_sell": float(request.POST['cad_sell']),
-				"chf_buy": float(request.POST['chf_buy']),
-				"chf_sell": float(request.POST['chf_sell']),
-				"gbp_buy": float(request.POST['gbp_buy']),
-				"gbp_sell": float(request.POST['gbp_sell']),
-				"pln_buy": float(request.POST['pln_buy']),
-				"pln_sell": float(request.POST['pln_sell']),
-			})
-
-
 # Обработчик действий выдачи средств/инкассации и операций обмена
 def count_result_of_action(request, cashbox_id):
+	# TODO Доработать удаление инкассаций и удаление продажи валют
+	# TODO при удалении должно создаваться новое недостпное пополнение с удалённым
+	# курсом и удалённой суммой, которое бы становилось активным при удалении удаления
 	"""
 	Реализация действий юзера: выделение денег, инкассация, создание новой операции, 
 	удаление операции
@@ -514,12 +494,11 @@ def count_result_of_action(request, cashbox_id):
 	result = {}
 	# Выделяем денежную поддержку кассе
 	if 'support_btn' in request.POST:
+		# Считываем данные из форм инкассации/начисления которые передал нам юзер
+		support_values, increase_rates = get_supp_encash_values(request)
 		# Производим изменение баланса денег
 		money_balance = change_money_balance('Increase',
-											{
-												request.POST['currency']:
-												request.POST['support_summ']
-											},
+											support_values,
 											cashbox_id)
 		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 		ExchangeActions.objects.create(
@@ -529,30 +508,23 @@ def count_result_of_action(request, cashbox_id):
 				person_surname = request.session['0'],
 				money_balance = json.dumps(money_balance),
 				action_type = 'Increase',
-				currency_changes = json.dumps({request.POST['currency']:
-												request.POST['support_summ']}
-											),
+				currency_changes = json.dumps(support_values),
 				comment = re.sub(r'\s+', ' ', request.POST['comment']),
 		).save()
+		# ПОлучаем ID последней созданной нами операции
+		increase_operation_id = get_object_or_404(ExchangeActions,
+											currency_changes = json.dumps(support_values),
+											person_data = cashier
+											).id
 		# Создаём отдельную запись в для мониторинга курса и подсчёта прибыли
-		IncreaseOperations.objects.create(
-				operation_date = datetime.date.today(),
-				operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
-				person_data = cashier,
-				person_surname = request.session['0'],
-				increase_exchange_rate = request.POST['increase_exchange_rate'],
-				increase_currency = request.POST['currency'],
-				increase_summ = request.POST['support_summ'],
-				comment = re.sub(r'\s+', ' ', request.POST['comment']),
-		).save()
+		add_increase_values(increase_rates, cashbox_id, request, increase_operation_id)
 	# Отправляем инкассацию
 	elif 'encashment_btn' in request.POST:
+		# Считываем данные из форм инкассации/начисления которые передал нам юзер
+		encashment_values = get_supp_encash_values(request)
 		# Производим изменение баланса денег
 		money_balance = change_money_balance('Encashment',
-											{
-												request.POST['currency']:
-												-float(request.POST['encashment_summ'])
-											},
+											encashment_values,
 											cashbox_id)
 		if not money_balance:
 			return False
@@ -564,17 +536,16 @@ def count_result_of_action(request, cashbox_id):
 				person_surname = request.session['0'],
 				money_balance = json.dumps(money_balance),
 				action_type = 'Encashment',
-				currency_changes = json.dumps({
-												request.POST['currency']:
-												-float(request.POST['encashment_summ'])
-												}),
+				currency_changes = json.dumps(encashment_values),
 				comment = re.sub(r'\s+', ' ', request.POST['comment'])
 		).save()
+		# Удаляем деньги из таблицы при инкассации средств
+		delete_increase_values(encashment_values, cashbox_id)
 	# Новая операция
 	elif 'check' in request.POST:
 		result["action"] = 'Exchange'
 		operation_type = request.POST['operation']
-
+		# TODO Привести к единообразию "currency_changes" и зачисление валюты в "IncreaseOperations"
 		# Операция покупки валюты за гривны
 		if operation_type == 's':
 			currency_changes = json.dumps({
@@ -615,6 +586,7 @@ def count_result_of_action(request, cashbox_id):
 		).save()
 	# Удаление операций
 	elif 'delete_operation' in request.POST:
+		currency_changes = {}
 		# Получение данных об операции которую хотим удалить, по id
 		deleted_action = ExchangeActions.objects.get(id = int(request.POST['delete_operation']))
 		# Получение актуального баланса денег в кассе по номеру кассы и дате
@@ -626,17 +598,13 @@ def count_result_of_action(request, cashbox_id):
 
 		# Если была инкассация
 		if deleted_action.action_type == 'Encashment':
-			# парсинг результата действия
 			for key in json.loads(deleted_action.currency_changes).keys():
-				# Запись информации о валюте/сумме которую изменяем
-				currency_changes = {
-									key: -(float(json.loads(
-													deleted_action.currency_changes)[key])),
-									}
-				money_balance[key] = float(money_balance[key]) \
-									- float(json.loads(deleted_action.currency_changes)[key])
-			# Получение денежного баланса
-			money_balance = change_money_balance('Increase',
+				if json.loads(deleted_action.currency_changes)[key] != 0:
+					# Запись информации о валюте/сумме которую изменяем
+					currency_changes[key] = - (float(json.loads(deleted_action.currency_changes)[key]))
+
+				# Получение денежного баланса
+			money_balance = change_money_balance('Encashment',
 												currency_changes,
 												cashbox_id
 												)
@@ -652,8 +620,12 @@ def count_result_of_action(request, cashbox_id):
 					comment = "Удаление операции №{0} от {1}".format(
 															deleted_action.id,
 															deleted_action.operation_time
-															)
+															),
+					possibility_of_operation = False
 			).save()
+			# Запрет использования операций начисления оперделённых средств/курсов
+			IncreaseOperations.objects.filter(increase_operation_id = deleted_action.id)\
+												.update(usability = True)
 			# Модификация старой операции что бы её нельзя было больше удалять
 			deleted_action.possibility_of_operation = False
 			deleted_action.save()
@@ -661,33 +633,34 @@ def count_result_of_action(request, cashbox_id):
 		elif deleted_action.action_type == 'Increase':
 			# парсинг результата действия
 			for key in json.loads(deleted_action.currency_changes).keys():
-				# Запись информации о валюте/сумме которую изменяем
-				currency_changes = {
-									key: - (float(json.loads(
-													deleted_action.currency_changes)[key])),
-									}
-				money_balance[key] = float(money_balance[key])\
-									+ float(json.loads(
-													deleted_action.currency_changes)[key])
-			# Получение денежного баланса
+				if json.loads(deleted_action.currency_changes)[key] != 0:
+					# Запись информации о валюте/сумме которую изменяем
+					currency_changes[key] = - (float(json.loads(deleted_action.currency_changes)[key]))
+
+				# Получение денежного баланса
 			money_balance = change_money_balance('Encashment',
 												currency_changes,
 												cashbox_id
 												)
 			# Создание новой операции
 			ExchangeActions(
-					operation_date = datetime.date.today(),
-					operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
-					person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
-					person_surname = request.session['0'],
-					money_balance = json.dumps(money_balance),
-					action_type = 'Encashment',
-					currency_changes = json.dumps(currency_changes),
-					comment = "Удаление операции №{0} от {1}".format(
-															deleted_action.id,
-															deleted_action.operation_time
-															),
+						operation_date = datetime.date.today(),
+						operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+						person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
+						person_surname = request.session['0'],
+						money_balance = json.dumps(money_balance),
+						action_type = 'Encashment',
+						currency_changes = json.dumps(currency_changes),
+						comment = "Удаление операции №{0} от {1}".format(
+																deleted_action.id,
+																deleted_action.operation_time
+																),
+						possibility_of_operation = False
 			).save()
+			# Запрет использования операций начисления оперделённых средств/курсов
+			IncreaseOperations.objects.filter(increase_operation_id =
+												int(request.POST['delete_operation']))\
+												.update(usability = False)
 			# Модификация старой операции что бы её нельзя было больше удалять
 			deleted_action.possibility_of_operation = False
 			deleted_action.save()
@@ -719,46 +692,29 @@ def count_result_of_action(request, cashbox_id):
 															deleted_action.id,
 															deleted_action.operation_time
 															),
-					possibility_of_operation = True,
+					possibility_of_operation = False,
 					operation_profit = -float(deleted_action.operation_profit),
 			).save()
-
+			IncreaseOperations.objects.filter(increase_operation_id =
+												int(request.POST['delete_operation']))\
+												.delete()
 			# Модификация старой операции что бы её нельзя было больше удалять
 			deleted_action.possibility_of_operation = False
 			deleted_action.save()
-			try:
-				# Возврат суммы в кассу с определённым курсом
-				used_increases = json.loads(deleted_action.used_increases)
-				currency = used_increases.pop('currency')
-				for value in used_increases.keys():
-						IncreaseOperations(
-								person_data = get_object_or_404(OrdinaryCashier,
-																id = cashbox_id),
-								person_surname = request.session['0'],
-								increase_exchange_rate = used_increases[value],
-								increase_currency = currency,
-								increase_summ = -float(value),
-								comment = 'Возврат средств.',
-								operation_date = datetime.date.today(),
-								operation_time = datetime.datetime.now().strftime(
-										"%H:%M:%S"),
-						).save()
-			except:
-				pass
-
 	# Обработка формы выделения денег кассе
 	elif 'cashbox_waste' in request.POST:
+		person = get_object_or_404(OrdinaryCashier, user__username = request.user.username)
 		# Производим изменение баланса денег
 		money_balance = change_money_balance('Encashment',
 											{
 												request.POST['currency']:
 												-float(request.POST['cashbox_waste_summ'])
 											},
-											request.user.id)
+											person.id)
 		if not money_balance:
 			return False
 		cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
-		cashier_admin = get_object_or_404(OrdinaryCashier, id = request.user.id)
+		cashier_admin = get_object_or_404(OrdinaryCashier, id = person.id)
 		ExchangeActions.objects.create(
 				operation_date = datetime.date.today(),
 				operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
@@ -848,6 +804,85 @@ def change_money_balance(action_type, currency_changes, cashbox_id):
 	return money_balance
 
 
+# Вносим изменения в таблицу валют после подкреплений
+def add_increase_values(increase_rates_values, cashbox_id, request, increase_operation_id):
+	# ПОлучаем данные юзера
+	cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
+	surname = request.session['0']
+	for currency in increase_rates_values.keys():
+		if currency != 'uah' and increase_rates_values[currency]['summ'] != 0:
+			IncreaseOperations.objects.create(
+					operation_date = datetime.date.today(),
+					operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+					person_data = cashier,
+					person_surname = surname,
+					increase_exchange_rate = increase_rates_values[currency]['rate'],
+					increase_currency = currency,
+					increase_summ = increase_rates_values[currency]['summ'],
+					increase_operation_id = increase_operation_id,
+			).save()
+	pass
+
+
+# Удаляем деньги из таблицы при инкассации средств IncreaseOperations
+def delete_increase_values(encashment_values, cashbox_id):
+	"""
+
+	:param encashment_values:
+	:param cashbox_id:
+	:return:
+	"""
+	used_encashments = {}
+	for key in encashment_values.keys():
+		if key != 'uah' and encashment_values[key] != 0:
+			increase_operations = IncreaseOperations.objects.filter(
+														person_data__id = cashbox_id,
+														increase_currency = key,
+														usability = True)\
+														.order_by('increase_exchange_rate')
+			# Циклом обходим зачисленные средства(начиная с наибольшего курса)
+			# и отнимаем от них нужную нам сумму
+			for i in range(0, len(increase_operations)):
+				# Если сумма которую хотим обменять меньше того что есть в кассе с
+				# одним курсом - просто меняем и удаляем часть суммы
+				if (increase_operations[i].increase_summ + encashment_values[key]) > 0:
+					# Удаляем потраченные средства
+					modified_operation = get_object_or_404(IncreaseOperations,
+															id = increase_operations[i].id)
+					# СОхраняем сумму за которую была произведена операиця и её курс
+					used_encashments['currency'] = key
+					used_encashments[encashment_values[key]] = increase_operations[i].increase_exchange_rate
+
+					modified_operation.increase_summ = increase_operations[i].increase_summ \
+														+ encashment_values[key]
+					modified_operation.save()
+					break
+				# Если то что мы хотим поменять больше одного зачисления в кассу -
+				# отнимаем всё что есть в зачислении и с остаток от обменной суммы
+				# переходим дальше
+				elif (increase_operations[i].increase_summ + encashment_values[key]) < 0:
+					# Обновляем данные по кол-ву денег для обмена
+					encashment_values[key] = increase_operations[i].increase_summ \
+																+ encashment_values[key]
+					# СОхраняем сумму за которую была произведена операиця и её курс
+					used_encashments['currency'] = key
+					used_encashments[encashment_values[key]] = increase_operations[i].increase_exchange_rate
+					# Удаляем потраченные средства
+					modified_operation = get_object_or_404(IncreaseOperations,
+															id = increase_operations[i].id)
+					modified_operation.delete()
+				# Если сумма для обмена равна сумме что осталась в кассе
+				else:
+					# СОхраняем сумму за которую была произведена операиця и её курс
+					used_encashments['currency'] = key
+					used_encashments[encashment_values[key]] = increase_operations[i].increase_exchange_rate
+					# Удаляем потраченные средства
+					modified_operation = get_object_or_404(IncreaseOperations,
+														id = increase_operations[i].id)
+					modified_operation.delete()
+					break
+
+
 # Подсчёт прибыли за сутки
 # Учитывается лишь прибыль от обменных операций
 def profit_calculation(date, id):
@@ -883,7 +918,7 @@ def profit_calculation(date, id):
 			profit_currencies_balance[key] = round(float(profit_currencies_balance[key])
 									+ float(json.loads(operation.currency_changes)[key]), 3)
 
-	return profit_balance, profit_currencies_balance
+	return round(profit_balance, 2), profit_currencies_balance
 
 
 # Получение чистой прибыли отдельной операции
@@ -896,8 +931,9 @@ def get_operation_profit(currency_changes, cashbox_id):
 		if key != 'uah':
 			increase_operations = IncreaseOperations.objects.filter(
 														person_data__id = cashbox_id,
-														increase_currency = key)\
-													.order_by('increase_exchange_rate')
+														increase_currency = key,
+														usability = True)\
+														.order_by('-increase_exchange_rate')
 			# Циклом обходим зачисленные средства(начиная с наименьшего курса)
 			# и отнимаем от них нужную нам сумму
 			for i in range(0, len(increase_operations)):
@@ -959,17 +995,101 @@ def get_operation_profit(currency_changes, cashbox_id):
 
 # СОхраняем в прибыток валюту полученную при покупке и курс
 def save_exchange_operation_data(request, currency_changes, cashbox_id):
+	"""
+	Сохраняет в IncreaseOperations данные после обменной операции юзера по покупке
+	валюты у населения
+	:param request: реквест от юзера
+	:param currency_changes:
+	:param cashbox_id: номер кассы на которой совершон обмен
+	:return: нисчего не возвращает, просто производит операцию
+	"""
+	cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 	exchange_rate = json.loads((ExchangeRates.objects.filter(cashbox__id = cashbox_id)
 								.order_by('-id'))[0].exchange_rate)
+	operation_id = ExchangeActions.objects.filter( person_data = cashier
+									).order_by('-id')[0].id
 	for key in currency_changes.keys():
 		if key != 'uah':
 			IncreaseOperations(
-					person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
+					person_data = cashier,
 					person_surname = request.session['0'],
 					increase_exchange_rate = exchange_rate[key+'_buy'],
 					increase_currency = key,
+					increase_operation_id = operation_id + 1,
 					increase_summ = currency_changes[key],
-					comment = 'Прибыль от покупки валюты.',
 					operation_date = datetime.date.today(),
 					operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
 			).save()
+
+
+# Получаем значения курсов валют со страницы
+def get_exchange_rate(request):
+	"""
+
+	:param request:
+	:return:
+	"""
+	return json.dumps({
+		"usd_buy": float(request.POST['usd_buy']),
+		"usd_sell": float(request.POST['usd_sell']),
+		"eur_buy": float(request.POST['eur_buy']),
+		"eur_sell": float(request.POST['eur_sell']),
+		"rub_buy": float(request.POST['rub_buy']),
+		"rub_sell": float(request.POST['rub_sell']),
+		"cad_buy": float(request.POST['cad_buy']),
+		"cad_sell": float(request.POST['cad_sell']),
+		"chf_buy": float(request.POST['chf_buy']),
+		"chf_sell": float(request.POST['chf_sell']),
+		"gbp_buy": float(request.POST['gbp_buy']),
+		"gbp_sell": float(request.POST['gbp_sell']),
+		"pln_buy": float(request.POST['pln_buy']),
+		"pln_sell": float(request.POST['pln_sell']),
+	})
+
+
+# Получаем валюту и курс после подкрепления/инкассации
+def get_supp_encash_values(request):
+	try:
+		# Валюта и сумма
+		support_values = {
+			"uah": float(request.POST['uah_support']),
+			"usd": float(request.POST['usd_support']),
+			"eur": float(request.POST['eur_support']),
+			"rub": float(request.POST['rub_support']),
+			"cad": float(request.POST['cad_support']),
+			"chf": float(request.POST['chf_support']),
+			"gbp": float(request.POST['gbp_support']),
+			"pln": float(request.POST['pln_support']),
+		}
+		# Валюта{сумма, курс}
+		increase_rates = {
+			"uah": {'summ': float(request.POST['uah_support']),
+					'rate': float(request.POST['uah_increase_exchange_rate'])},
+			"usd": {'summ': float(request.POST['usd_support']),
+					'rate': float(request.POST['usd_increase_exchange_rate'])},
+			"eur": {'summ': float(request.POST['eur_support']),
+					'rate': float(request.POST['eur_increase_exchange_rate'])},
+			"rub": {'summ': float(request.POST['rub_support']),
+					'rate': float(request.POST['rub_increase_exchange_rate'])},
+			"cad": {'summ': float(request.POST['cad_support']),
+					'rate': float(request.POST['cad_increase_exchange_rate'])},
+			"chf": {'summ': float(request.POST['chf_support']),
+					'rate': float(request.POST['chf_increase_exchange_rate'])},
+			"gbp": {'summ': float(request.POST['gbp_support']),
+					'rate': float(request.POST['gbp_increase_exchange_rate'])},
+			"pln": {'summ': float(request.POST['pln_support']),
+					'rate': float(request.POST['pln_increase_exchange_rate'])},
+		}
+		return support_values, increase_rates
+	except:
+		encashment_values = {
+			"uah": -float(request.POST['uah_encashment']),
+			"usd": -float(request.POST['usd_encashment']),
+			"eur": -float(request.POST['eur_encashment']),
+			"rub": -float(request.POST['rub_encashment']),
+			"cad": -float(request.POST['cad_encashment']),
+			"chf": -float(request.POST['chf_encashment']),
+			"gbp": -float(request.POST['gbp_encashment']),
+			"pln": -float(request.POST['pln_encashment']),
+		}
+		return encashment_values

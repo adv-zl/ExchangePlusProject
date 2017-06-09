@@ -10,40 +10,187 @@
             <div align="center">
                 <form  name="encashment_form" enctype="multipart/form-data" method="post">
                     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                    <div class="input-group">
-                        <div style="width:315px;" class="input-group-addon">
-                            Введите сумму для инакассации
-                        </div>
-                        <input required name="encashment_summ" type="number" step="0.01"
-                               min="0" style="width:100px; height: 30px">
-                    </div>
-
-                    <p><div class="input-group">
-                        <div style="width:315px;" class="input-group-addon">
-                            Выберите валюту
-                        </div>
-                        <select style="width:100px; height: 30px" name="currency">
-                            <option value="uah">UAH</option>
-                            <option value="usd">USD</option>
-                            <option value="eur">EUR</option>
-                            <option value="rub">RUB</option>
-                            <option value="cad">CAD</option>
-                            <option value="chf">CHF</option>
-                            <option value="gbp">GBP</option>
-                            <option value="pln">PLN</option>
-                        </select>
-                    </div>
-
-                    <p><div class="input-group">
-                        <div style="width:210px;" class="input-group-addon">
-                            Введите Фамилию и данные инкассатора
-                        </div>
-                        <div style="width:180px;" class="form-group">
-                            <input name="comment" class="form-control" required>
-                            </input>
-                        </div>
-                    </div>
-
+                    <table class="table table-bordered">
+                        <tr>
+                            <th>Валюта</th>
+                            <th>Имеется в кассе</th>
+                            <th>Сумма к инкассации</th>
+                        </tr>
+                        <tr>
+                            <td>UAH</td>
+                            {% if actions %}
+                                <td>
+                                    {{ actions[-1].money_balance_data.uah }}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {{ rest_money_data.uah }}
+                                </td>
+                            {% endif %}
+                            <td>
+                                <input required name="uah_encashment" type="number" step="0.01"
+                                       min="0"
+                                        {% if actions %}
+                                            max = "{{ actions[-1].money_balance_data.uah }}"
+                                        {% else %}
+                                            max = "{{ rest_money_data.uah }}"
+                                        {% endif %} style="width:100px; height: 30px" value="0">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>USD</td>
+                            {% if actions %}
+                                <td>
+                                    {{ actions[-1].money_balance_data.usd }}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {{ rest_money_data.usd }}
+                                </td>
+                            {% endif %}
+                            <td>
+                                <input required name="usd_encashment" type="number" step="0.01"
+                                       min="0"
+                                        {% if actions %}
+                                            max = "{{ actions[-1].money_balance_data.usd }}"
+                                        {% else %}
+                                            max = "{{ rest_money_data.usd }}"
+                                        {% endif %} style="width:100px; height: 30px" value="0">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>EUR</td>
+                            {% if actions %}
+                                <td>
+                                    {{ actions[-1].money_balance_data.eur }}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {{ rest_money_data.eur }}
+                                </td>
+                            {% endif %}
+                            <td>
+                                <input required name="eur_encashment" type="number" step="0.01"
+                                       min="0"
+                                       {% if actions %}
+                                            max = "{{ actions[-1].money_balance_data.eur }}"
+                                       {% else %}
+                                            max = "{{ rest_money_data.eur }}"
+                                       {% endif %}style="width:100px; height: 30px" value="0">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>RUB</td>
+                            {% if actions %}
+                                <td>
+                                    {{ actions[-1].money_balance_data.rub }}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {{ rest_money_data.rub }}
+                                </td>
+                            {% endif %}
+                            <td>
+                                <input required name="rub_encashment" type="number" step="0.001"
+                                       min="0"
+                                        {% if actions %}
+                                            max = "{{ actions[-1].money_balance_data.rub }}"
+                                        {% else %}
+                                            max = "{{ rest_money_data.rub }}"
+                                        {% endif %} style="width:100px; height: 30px" value="0">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CAD</td>
+                            {% if actions %}
+                                <td>
+                                    {{ actions[-1].money_balance_data.cad }}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {{ rest_money_data.cad }}
+                                </td>
+                            {% endif %}
+                            <td>
+                                <input required name="cad_encashment" type="number" step="0.01"
+                                       min="0"
+                                        {% if actions %}
+                                            max = "{{ actions[-1].money_balance_data.cad }}"
+                                        {% else %}
+                                            max = "{{ rest_money_data.cad }}"
+                                        {% endif %} style="width:100px; height: 30px" value="0">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>CHF</td>
+                            {% if actions %}
+                                <td>
+                                    {{ actions[-1].money_balance_data.chf }}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {{ rest_money_data.chf }}
+                                </td>
+                            {% endif %}
+                            <td>
+                                <input required name="chf_encashment" type="number" step="0.01"
+                                       min="0"
+                                        {% if actions %}
+                                            max = "{{ actions[-1].money_balance_data.chf }}"
+                                        {% else %}
+                                            max = "{{ rest_money_data.chf }}"
+                                        {% endif %} style="width:100px; height: 30px" value="0">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>GBP</td>
+                            {% if actions %}
+                                <td>
+                                    {{ actions[-1].money_balance_data.gbp }}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {{ rest_money_data.gbp }}
+                                </td>
+                            {% endif %}
+                            <td>
+                                <input required name="gbp_encashment" type="number" step="0.01"
+                                       min="0"
+                                        {% if actions %}
+                                            max = "{{ actions[-1].money_balance_data.gbp }}"
+                                        {% else %}
+                                            max = "{{ rest_money_data.gbp }}"
+                                        {% endif %} style="width:100px; height: 30px" value="0">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>PLN</td>
+                            {% if actions %}
+                                <td>
+                                    {{ actions[-1].money_balance_data.pln }}
+                                </td>
+                            {% else %}
+                                <td>
+                                    {{ rest_money_data.pln }}
+                                </td>
+                            {% endif %}
+                            <td>
+                                <input required name="pln_encashment" type="number" step="0.01"
+                                       min="0"
+                                        {% if actions %}
+                                            max = "{{ actions[-1].money_balance_data.pln }}"
+                                        {% else %}
+                                            max = "{{ rest_money_data.pln }}"
+                                        {% endif %} style="width:100px; height: 30px" value="0">
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>Фамилия/данные <br>инкассатора</td>
+                            <td colspan="2">
+                                <input name="comment" class="form-control" required>
+                            </td>
+                        </tr>
+                    </table>
                     <p><div class="modal-footer">
                         <button type="button" class="btn btn-default" data-dismiss="modal">
                             Закрыть

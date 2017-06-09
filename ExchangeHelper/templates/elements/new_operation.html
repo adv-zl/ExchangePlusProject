@@ -48,8 +48,8 @@
                             <div style="width:315px;" class="input-group-addon val_2_desc">
                                 Сумма для продажи-выдачи, грн
                             </div>
-                            <input required
-                                   class="val_2" value="0" name="summ_2" style="width:100px; height: 30px" >
+                            <input class="val_2" name="summ_2" type="number" step="0.01"
+                                   min="0" style="width:100px; height: 30px" id="input">
                         </div>
                     </div>
                     <br>
@@ -58,12 +58,19 @@
 
                 <div align="left">
                     <button type="submit" class="btn btn-primary" name="check"
-                            id="button_send" >
+                            id="button_send" disabled>
                         Совершить операцию</button>
-                    <button  type="submit" class="btn btn-default" name="calculate">
+                    <button  type="submit" onclick="checkParams();" class="btn
+                            btn-default" name="calculate">
                         Предварительный рассчёт</button>
                 </div>
             </div>
         </form>
+    <script type="text/javascript">
+        function checkParams() {
+            $('#button_send').prop("disabled", false);
+
+        }
+    </script>
     </div>
 {% endblock %}

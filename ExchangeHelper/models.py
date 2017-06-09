@@ -56,7 +56,7 @@ class ExchangeActions(models.Model):
 
 
 # Записки для односторонней связи кассир->админ и для записей трат администратора
-class AdministratorCashCosts(models.Model):
+class AdministratorScraps(models.Model):
 	# Данные кассы
 	waste_cashbox = models.ForeignKey(OrdinaryCashier)
 	# ФИО автора записки
@@ -104,6 +104,10 @@ class IncreaseOperations(models.Model):
 	person_data = models.ForeignKey(OrdinaryCashier)
 	# ФИО кассира проведшего операцию
 	person_surname = models.CharField(max_length = 20)
+	# ID операции зачисления
+	increase_operation_id = models.IntegerField(default = 0)
+	# ВОзможность использования валюты
+	usability = models.BooleanField(default = True)
 
 	# Курс по которому зачисленна валюта
 	increase_exchange_rate = models.FloatField(default = 0)
@@ -111,8 +115,3 @@ class IncreaseOperations(models.Model):
 	increase_currency = models.CharField(max_length = 5)
 	# Зачисленная сумма
 	increase_summ = models.FloatField()
-
-	# Коментарий к событию
-	comment = models.CharField(max_length = 200)
-	# Активна ли операция, если да то она поерация обмена иона не удалённая
-	possibility_of_operation = models.BooleanField(default = True)
