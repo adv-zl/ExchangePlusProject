@@ -540,7 +540,7 @@ def count_result_of_action(request, cashbox_id):
 				comment = re.sub(r'\s+', ' ', request.POST['comment'])
 		).save()
 		# Удаляем деньги из таблицы при инкассации средств
-		delete_increase_values(encashment_values, cashbox_id)
+		delete_increase_values(encashment_values, cashbox_id, request)
 	# Новая операция
 	elif 'check' in request.POST:
 		result["action"] = 'Exchange'
@@ -825,13 +825,19 @@ def add_increase_values(increase_rates_values, cashbox_id, request, increase_ope
 
 
 # Удаляем деньги из таблицы при инкассации средств IncreaseOperations
-def delete_increase_values(encashment_values, cashbox_id):
+def delete_increase_values(encashment_values, cashbox_id, request):
 	"""
 
 	:param encashment_values:
 	:param cashbox_id:
 	:return:
 	"""
+	# ПОлучаем ID полседеней операции для того что бы привязать её к инкассации
+	operation_id = ExchangeActions.objects.filter(
+						person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
+						action_type = 'Encashment',
+						currency_changes = json.dumps(encashment_values),
+				).order_by('operation_time')[0].id
 	used_encashments = {}
 	for key in encashment_values.keys():
 		if key != 'uah' and encashment_values[key] != 0:
@@ -839,7 +845,7 @@ def delete_increase_values(encashment_values, cashbox_id):
 														person_data__id = cashbox_id,
 														increase_currency = key,
 														usability = True)\
-														.order_by('increase_exchange_rate')
+														.order_by('-increase_exchange_rate')
 			# Циклом обходим зачисленные средства(начиная с наибольшего курса)
 			# и отнимаем от них нужную нам сумму
 			for i in range(0, len(increase_operations)):
@@ -850,8 +856,16 @@ def delete_increase_values(encashment_values, cashbox_id):
 					modified_operation = get_object_or_404(IncreaseOperations,
 															id = increase_operations[i].id)
 					# СОхраняем сумму за которую была произведена операиця и её курс
-					used_encashments['currency'] = key
-					used_encashments[encashment_values[key]] = increase_operations[i].increase_exchange_rate
+					if key in used_encashments:
+						used_encashments[key].append({
+									'value': abs(encashment_values[key]),
+									'rate': increase_operations[i].increase_exchange_rate
+									})
+					else:
+						used_encashments[key] = [{
+										'value': abs(encashment_values[key]),
+										'rate': increase_operations[i].increase_exchange_rate
+										}]
 
 					modified_operation.increase_summ = increase_operations[i].increase_summ \
 														+ encashment_values[key]
@@ -865,8 +879,16 @@ def delete_increase_values(encashment_values, cashbox_id):
 					encashment_values[key] = increase_operations[i].increase_summ \
 																+ encashment_values[key]
 					# СОхраняем сумму за которую была произведена операиця и её курс
-					used_encashments['currency'] = key
-					used_encashments[encashment_values[key]] = increase_operations[i].increase_exchange_rate
+					if key in used_encashments:
+						used_encashments[key].append({
+							'value': abs(increase_operations[i].increase_summ),
+							'rate': increase_operations[i].increase_exchange_rate
+						})
+					else:
+						used_encashments[key] = [{
+							'value': abs(increase_operations[i].increase_summ),
+							'rate': increase_operations[i].increase_exchange_rate
+						}]
 					# Удаляем потраченные средства
 					modified_operation = get_object_or_404(IncreaseOperations,
 															id = increase_operations[i].id)
@@ -874,13 +896,34 @@ def delete_increase_values(encashment_values, cashbox_id):
 				# Если сумма для обмена равна сумме что осталась в кассе
 				else:
 					# СОхраняем сумму за которую была произведена операиця и её курс
-					used_encashments['currency'] = key
-					used_encashments[encashment_values[key]] = increase_operations[i].increase_exchange_rate
+					if key in used_encashments:
+						used_encashments[key].append({
+							'value': abs(encashment_values[key]),
+							'rate': increase_operations[i].increase_exchange_rate
+						})
+					else:
+						used_encashments[key] = [{
+							'value': abs(encashment_values[key]),
+							'rate': increase_operations[i].increase_exchange_rate
+						}]
 					# Удаляем потраченные средства
 					modified_operation = get_object_or_404(IncreaseOperations,
 														id = increase_operations[i].id)
 					modified_operation.delete()
 					break
+
+			for element in used_encashments[key]:
+				IncreaseOperations(
+							person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
+							person_surname = request.session['0'],
+							increase_exchange_rate = element['rate'],
+							increase_currency = key,
+							increase_operation_id = operation_id,
+							increase_summ = element['value'],
+							operation_date = datetime.date.today(),
+							operation_time = datetime.datetime.now().strftime("%H:%M:%S"),
+							usability = False,
+					).save()
 
 
 # Подсчёт прибыли за сутки
