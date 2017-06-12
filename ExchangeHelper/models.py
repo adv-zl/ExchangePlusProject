@@ -1,5 +1,5 @@
-from django.db import models
 from django.contrib.auth.models import User
+from django.db import models
 
 
 # Создание рядовойго кассира
@@ -39,12 +39,6 @@ class ExchangeActions(models.Model):
 	currency_changes = models.CharField(max_length = 100)
 	# ПРибыль от обменно операции
 	operation_profit = models.FloatField(default = 0)
-	# Сюда будут записываться используемые валюты/сумма/курс в формате:
-	# currency:{
-	#			{value:rate},
-	#			...
-	# }
-	used_increases = models.CharField(max_length = 200, default = '')
 	# Коментарий к событию
 	comment = models.CharField(max_length = 200)
 	# Активна ли операция, если да то она поерация обмена иона не удалённая
@@ -115,3 +109,8 @@ class IncreaseOperations(models.Model):
 	increase_currency = models.CharField(max_length = 5)
 	# Зачисленная сумма
 	increase_summ = models.FloatField()
+
+	def __str__(self):
+		return str(self.increase_operation_id) +' - '+ str(self.increase_summ)\
+			+' по '+ str(self.increase_exchange_rate) +', '+str(self.operation_date)+', '\
+			+ str(self.operation_time)
