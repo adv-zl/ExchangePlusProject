@@ -928,9 +928,8 @@ def delete_increase_values(encashment_values, cashbox_id, request):
 							'rate': increase_operations[i].increase_exchange_rate
 						}]
 					# Удаляем потраченные средства
-					modified_operation = get_object_or_404(IncreaseOperations,
-														id = increase_operations[i].id)
-					modified_operation.delete()
+					IncreaseOperations.objects.filter(id = increase_operations[i].id)\
+																.update(usability = False)
 					break
 
 			for element in used_encashments[key]:
@@ -1078,9 +1077,8 @@ def get_operation_profit(currency_changes, cashbox_id, request):
 							'rate': increase_operations[i].increase_exchange_rate
 						}]
 					# Удаляем потраченные средства
-					modified_operation = get_object_or_404(IncreaseOperations,
-														id = increase_operations[i].id)
-					modified_operation.delete()
+					IncreaseOperations.objects.filter(id = increase_operations[i].id)\
+																.update(usability = False)
 					break
 
 			for element in used_exchanges[key]:

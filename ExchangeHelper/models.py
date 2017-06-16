@@ -11,7 +11,8 @@ class OrdinaryCashier(models.Model):# Логин кассира
 	cashier_description_short = models.CharField(max_length = 100)
 
 	def __str__(self):
-		return str(self.cashier_description_short)
+		return ('№ ' + str(self.id) + '. Логин: ' + str(self.user.username) +
+				'. Описание: ' + str(self.cashier_description_short))
 
 
 # Таблица действий юзера и учёта суммы денег
@@ -45,8 +46,10 @@ class ExchangeActions(models.Model):
 	possibility_of_operation = models.BooleanField(default = True)
 
 	def __str__(self):
-		return str(self.action_type) +' - '+str(self.operation_date)+', '+ str(
-				self.operation_time)
+		return ('№ '+ str(self.id) +
+				'. ' +str(self.operation_date)+', '+ str(self.operation_time)+
+				'. Тип операции: ' + str(self.action_type) +
+				'. Изменение валют: '+str(self.currency_changes)+';')
 
 
 # Записки для односторонней связи кассир->админ и для записей трат администратора
@@ -69,7 +72,10 @@ class AdministratorScraps(models.Model):
 	waste_time = models.TimeField()
 
 	def __str__(self):
-		return str(self.waste_reason)
+		return ('От '+ str(self.waste_author) +
+				', из: '+ str(self.waste_cashbox.cashier_description_short) +
+				'. Причина: ' +str(self.waste_reason)+
+				'; '+str(self.waste_date)+', '+ str(self.waste_time))
 
 
 # Курсы валют
@@ -84,8 +90,9 @@ class ExchangeRates(models.Model):
 	change_time = models.TimeField()
 
 	def __str__(self):
-		return str(self.cashbox.cashier_description_short)+" - "+ str(
-				self.change_date)+', '+ str(self.change_time)
+		return ('№ ' + str(self.id) +
+				'. Для кассы: '+ str(self.cashbox.cashier_description_short) +
+				'; ' +str(self.change_date)+', '+ str(self.change_time))
 
 
 # Операции пополнения
@@ -111,6 +118,7 @@ class IncreaseOperations(models.Model):
 	increase_summ = models.FloatField()
 
 	def __str__(self):
-		return str(self.increase_operation_id) +' - '+ str(self.increase_summ)\
-			+' по '+ str(self.increase_exchange_rate) +', '+str(self.operation_date)+', '\
-			+ str(self.operation_time)
+		return ('№ ' + str(self.increase_operation_id) + '. ' + str(
+				self.increase_summ) + ', '+str(self.increase_currency) +
+				' по ' + str(self.increase_exchange_rate) + \
+				'; ' + str(self.operation_date)+', ' + str(self.operation_time))
