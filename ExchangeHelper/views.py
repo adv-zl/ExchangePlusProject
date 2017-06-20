@@ -859,11 +859,13 @@ def delete_increase_values(encashment_values, cashbox_id, request):
 						person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
 						currency_changes = json.dumps(encashment_values),
 				).order_by('-id')[0].id
+	# ПОлучаем данные юзера
+	cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 	used_encashments = {}
 	for key in encashment_values.keys():
 		if key != 'uah' and encashment_values[key] != 0:
 			increase_operations = IncreaseOperations.objects.filter(
-														person_data__id = cashbox_id,
+														person_data = cashier,
 														increase_currency = key,
 														usability = True)\
 														.order_by('-increase_exchange_rate')
@@ -994,10 +996,12 @@ def get_operation_profit(currency_changes, cashbox_id, request):
 				).order_by('-id')[0].id + 1
 	exchange_rate = json.loads((ExchangeRates.objects.filter(cashbox__id = cashbox_id)
 														.order_by('-id'))[0].exchange_rate)
+	# ПОлучаем данные юзера
+	cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 	for key in currency_changes.keys():
 		if key != 'uah':
 			increase_operations = IncreaseOperations.objects.filter(
-														person_data__id = cashbox_id,
+														person_data = cashier,
 														increase_currency = key,
 														usability = True)\
 														.order_by('-increase_exchange_rate')
@@ -1083,8 +1087,7 @@ def get_operation_profit(currency_changes, cashbox_id, request):
 
 			for element in used_exchanges[key]:
 				IncreaseOperations(
-						person_data = get_object_or_404(OrdinaryCashier,
-														id = cashbox_id),
+						person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
 						person_surname = request.session['0'],
 						increase_exchange_rate = element['rate'],
 						increase_currency = key,

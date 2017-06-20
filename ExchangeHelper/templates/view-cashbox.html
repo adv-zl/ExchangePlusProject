@@ -18,7 +18,7 @@
                 {% endblock %}
             {% endif %}
             <div class="panel-body">
-                <h3><strong>{{ user_inform}}</strong></h3>
+                <h3><strong>{{ user_inform.cashier_description_short }}</strong></h3>
                 {% if role %}
                     <a href="/edit-cashbox/{{ id }}">
                         <button style="width: 160px;" type="button" class="btn btn-default" >

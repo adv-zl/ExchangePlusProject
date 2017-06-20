@@ -21,14 +21,13 @@
                         <p></p>
                         <button type="button" class="btn btn-default btn-small"
                                 data-toggle="tooltip" data-placement="left">
-                            <h4><strong>{{ user_inform}}</strong></h4>
+                            <h4><strong>{{ user_inform.cashier_description_short }}</strong></h4>
                         </button>
                     </a>
                     <p></p>
                     <h4>{{ user_inform.cashier_description_full }}</h4>
                     <p></p>
-                {% endif %}
-                {% if role %}
+                {% else %}
                     Все кассы:
                     {% for element in users %}
                         <a href="/view-cashbox/{{ element.id }}">
