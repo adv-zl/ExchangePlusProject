@@ -2,18 +2,20 @@
     <div class="container-fluid cont-wrap ng-scope">
         <div class="row">
             <div class="col-sm-3">
+            {% if 'ChiefCashier' in role %}
                 {% block user_menu %}
                     {% include 'elements/user_create.html' %}
                     {% include 'elements/special_operation.html' %}
                 {% endblock %}
+            {% endif %}
             </div>
             <div class="col-sm-9">
                 <div>
                     <h3>Личный кабинет администратора - {{ surname }}</h3>
                 </div>
                 <div>
-                    {% if waste_list %}
-                        {% for element in waste_list %}
+                    {% if scraps_list %}
+                        {% for element in scraps_list %}
                             <p><u>Автор</u>:
                                 <a href="/view-cashbox/{{ element.waste_cashbox.id }}">
                                     <b>{{ element.waste_author }}</b>
@@ -22,14 +24,16 @@
                             <p><u>Тема/причина траты</u>: {{ element.waste_reason }}
                             <p><u>Сумма и валюта</u>: {{ element.waste_summ }} - {{ element.waste_currency }}
                             <p><u>Коментарий к операции</u>: {{ element.waste_comment }}
-                            <form  name="encashment_form" enctype="multipart/form-data" method="post">
-                                <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
-                                <button style="width: 150px;" type="submit" class="btn btn-default"
-                                        name="delete_waste" value="{{ element.id }}">
-                                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                                    Удалить запись
-                                </button>
-                            </form>
+                            {% if 'ChiefCashier' in role %}
+                                <form  name="encashment_form" enctype="multipart/form-data" method="post">
+                                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                                    <button style="width: 150px;" type="submit" class="btn btn-default"
+                                            name="delete_waste" value="{{ element.id }}">
+                                        <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
+                                        Удалить запись
+                                    </button>
+                                </form>
+                            {% endif %}
                             <hr>
                         {% endfor %}
                     {% endif %}

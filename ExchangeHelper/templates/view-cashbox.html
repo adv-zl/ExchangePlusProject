@@ -2,9 +2,11 @@
 <div class="container-fluid cont-wrap ng-scope">
     <div class="row">
         <div class="col-sm-3">
-            {% block user_menu %}
-                {% include 'elements/user_menu.html' %}
-            {% endblock %}
+            {% if 'ChiefCashier' in role or 'OrdinaryCashier' in role %}
+                {% block user_menu %}
+                    {% include 'elements/user_menu.html' %}
+                {% endblock %}
+            {% endif %}
 
             <p></p>
             {% block exchange_rate %}
@@ -19,7 +21,7 @@
             {% endif %}
             <div class="panel-body">
                 <h3><strong>{{ user_inform.cashier_description_short }}</strong></h3>
-                {% if role %}
+                {% if 'ChiefCashier' in role %}
                     <a href="/edit-cashbox/{{ id }}">
                         <button style="width: 160px;" type="button" class="btn btn-default" >
                             <span class="glyphicon glyphicon-wrench" aria-hidden="true"></span>
@@ -33,9 +35,11 @@
                 <p></p>
                 <h4>{{ user_inform.cashier_description_full }}</h4>
                 <br>
-                {% block new_operation_form %}
-                    {% include 'elements/new_operation.html' %}
-                {% endblock %}
+                {% if 'ChiefCashier' in role or 'OrdinaryCashier' in role %}
+                    {% block new_operation_form %}
+                        {% include 'elements/new_operation.html' %}
+                    {% endblock %}
+                {% endif %}
                 <p></p>
                 {% block transaction_table %}
                     {% include 'elements/transaction_table.html' %}

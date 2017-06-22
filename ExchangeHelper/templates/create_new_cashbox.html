@@ -47,6 +47,14 @@
                                type="password" required>
                     </div>
                 <p class="help">Пароль для входа в аккаунт</p>
+                <p class="help">Выберите тип кассы</p>
+                <p><input name="cashbox_type" type="radio" checked
+                          value="OrdinaryCashier">
+                    <label for="op_buy">Обычная касса </label></p>
+                <p><input name="cashbox_type" type="radio" disabled value="Supervisor">
+                    <label for="op_sell">Наблюдатель</label></p>
+                <p><input name="cashbox_type" type="radio"  disabled value="ChiefCashier">
+                    <label for="op_sell">Администратор</label></p>
                 <div class="input-group">
                         <div style="width:200px;" class="input-group-addon">
                             Полное описание кассы

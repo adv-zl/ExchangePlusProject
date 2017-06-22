@@ -9,35 +9,35 @@
       </div>
       <!-- Collect the nav links, forms, and other content for toggling -->
       <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
-          {% if role %}
-          <ul class="nav navbar-nav">
-              <li role="presentation" class="active">
-                  <a href="/private" title="Переход в личный кабинет" style="margin-right: 10px;">
-                      <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
-                      Личный кабинет
-                      {% if admin_messages %}
-                          <span class="badge">{{ admin_messages }}</span>
-                      {% endif %}
-                  </a>
-              </li>
-              <li class="dropdown">
-                  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
-                     style="margin-right: 10px">
-                      Список всех касс
-                      <span class="glyphicon glyphicon-circle-arrow-down"></span></a>
-                  <ul class="dropdown-menu">
-                      {% for element in users %}
-                          <li>
-                              <a href="/view-cashbox/{{ element.id }}" title="{{ element.cashier_description_full }}">
-                                  <span class="glyphicon glyphicon-euro" aria-hidden="true"></span>
-                                  {{ element.cashier_description_short }}
-                              </a>
-                          </li>
-                          <li role="separator" class="divider"></li>
-                      {% endfor %}
-                  </ul>
-              </li>
-          </ul>
+          {% if 'ChiefCashier' in role or 'Supervisor' in role %}
+              <ul class="nav navbar-nav">
+                  <li role="presentation" class="active">
+                      <a href="/private" title="Переход в личный кабинет" style="margin-right: 10px;">
+                          <span class="glyphicon glyphicon-user" aria-hidden="true"></span>
+                          Личный кабинет
+                          {% if admin_messages %}
+                              <span class="badge">{{ admin_messages }}</span>
+                          {% endif %}
+                      </a>
+                  </li>
+                  <li class="dropdown">
+                      <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button"
+                         style="margin-right: 10px">
+                          Список всех касс
+                          <span class="glyphicon glyphicon-circle-arrow-down"></span></a>
+                      <ul class="dropdown-menu">
+                          {% for element in users %}
+                              <li>
+                                  <a href="/view-cashbox/{{ element.id }}" title="{{ element.cashier_description_full }}">
+                                      <span class="glyphicon glyphicon-euro" aria-hidden="true"></span>
+                                      {{ element.cashier_description_short }}
+                                  </a>
+                              </li>
+                              <li role="separator" class="divider"></li>
+                          {% endfor %}
+                      </ul>
+                  </li>
+              </ul>
           {% endif %}
 
           {% if surname %}
@@ -57,7 +57,7 @@
                       </button>
                   </a>
               </ul>
-              {% if role %}
+              {% if 'ChiefCashier' in role or 'Supervisor' in role %}
               <ul style="margin-right: 10px" class="nav navbar-nav navbar-right">
                   <a href="/financial-statement" title="Финансовый отчёт">
                       <p></p>

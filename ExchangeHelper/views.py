@@ -6,48 +6,41 @@ from django.contrib import auth
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 
-from .models import AdministratorScraps, ExchangeActions, ExchangeRates,\
+from .models import AdministratorScraps, ExchangeActions, ExchangeRates, Group,\
 	IncreaseOperations, OrdinaryCashier, User
 
 
 # TODO Заполнить документации к функциям
-
+# TODO Закончить разделение прав юзеров на 3 группы
 
 # основная странциа с формами и функционалом
 def index(request):
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
-
+	content = {}
 	# Список всех касс
-	users_list = OrdinaryCashier.objects.all()
+	content.update({'users': OrdinaryCashier.objects.all()})
 	# Таблица курсов валют
 	exchange_rate = ''
 	# ФИО юзера которое он ввёл при входе
 	person = ''
-	# Администратор или нет
-	role = False
-	admin_messages = ''
-	if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
-		role = True
-		# ПОлучение списка всех записок
-		admin_messages = len(AdministratorScraps.objects.all())
-	else:
+	# Проверка и получение прав доступа
+	content.update(check_user_group(request))
+	content.update(get_admin_messages())
+	if 'OrdinaryCashier' in content['role']:
 		person = OrdinaryCashier.objects.filter(user__username = request.user.username)
 		person = person[0]
 		# Получение последнего курса валют для данной кассы
 		exchange_rate = json.loads(ExchangeRates.objects.filter(
 										cashbox = person).order_by('-id')[0].exchange_rate)
 
-	content = {
+	content.update({
 		'doc': 'index.html',
 
-		'role': role,
-		'users': users_list,
 		'user_inform': person,
 		'exchange_rate_data': exchange_rate,
 		'surname': request.session['0'],
-		'admin_messages': admin_messages,
-	}
+	})
 	return render(request, 'base.html', content)
 
 
@@ -55,14 +48,18 @@ def index(request):
 def home(request):
 	content = {
 		'doc': 'home.html',
+		'role': ''
 	}
 	if not request.user.is_anonymous():
 		content['surname'] = 'Аноним'
 		if request.session['0']:
 			content['surname'] = request.session['0']
-		if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
-			content['role'] = True
-			content['users'] = OrdinaryCashier.objects.all()
+			# Проверка и получение прав доступа
+			content.update(check_user_group(request))
+			# ПОлучение списка касс
+			content.update({'users': OrdinaryCashier.objects.all()})
+			# ПОлучение всех сообщений для юадминистрации
+			content.update(get_admin_messages())
 
 	return render(request, 'base.html', content)
 
@@ -71,14 +68,18 @@ def home(request):
 def wiki(request):
 	content = {
 		'doc': 'wiki.html',
+		'role': ''
 	}
 	if not request.user.is_anonymous():
 		content['surname'] = 'Аноним'
 		if request.session['0']:
 			content['surname'] = request.session['0']
-		if request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
-			content['role'] = True
+			# Проверка и получение прав доступа
+			content.update(check_user_group(request))
+			# ПОлучение списка касс
 			content['users'] = OrdinaryCashier.objects.all()
+			# ПОлучение всех сообщений для юадминистрации
+			content.update(get_admin_messages())
 
 	return render(request, 'base.html', content)
 
@@ -87,6 +88,7 @@ def wiki(request):
 def login(request):
 	content = {
 		'doc': 'login.html',
+		'role': ''
 	}
 	if request.POST:
 		username = request.POST['username']
@@ -96,9 +98,7 @@ def login(request):
 		user = auth.authenticate(username = username, password = password)
 		if user is not None and user.is_active:
 			auth.login(request, user)
-			person = get_object_or_404(OrdinaryCashier, user__username = username)
-			# Перенаправляем на страницу кассы
-			return HttpResponseRedirect('/view-cashbox/{0}'.format(person.id))
+			return HttpResponseRedirect('/index/')
 		else:
 			content['error'] = 'Неверный логин или пароль!'
 			return render(request, 'base.html', content)
@@ -110,23 +110,29 @@ def logout(request):
 	request.session = ''
 	content = {
 		'doc': 'logout.html',
+		'role': ''
 	}
 	return render(request, 'base.html', content)
 
 
 # Личный кабинет юзера
 def private(request):
-	# Проверка прав доступа
-	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
+	content ={}
+	# Проверка и получение прав доступа
+	content.update(check_user_group(request))
+	# ПОлучение списка касс
+	content.update({'users': OrdinaryCashier.objects.all()})
+	# ПОлучение всех сообщений для юадминистрации
+	content.update(get_admin_messages())
+	if 'OrdinaryCashier' in content['role']:
 		return HttpResponseRedirect('/index/')
-	if request.user.is_anonymous():
+	elif request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
-	# ПОлучение списка всех записок
-	admin_messages = len(AdministratorScraps.objects.all())
 	# Получение списка записок/трат
-	waste_list = AdministratorScraps.objects.all().order_by('-id')
-	if not waste_list:
-		waste_list = None
+	scraps_list = AdministratorScraps.objects.all().order_by('-id')
+	if not scraps_list:
+		scraps_list = None
+	content.update({'scraps_list': scraps_list})
 
 	# Обработка форм
 	if request.POST:
@@ -148,28 +154,27 @@ def private(request):
 			AdministratorScraps.objects.get(id = request.POST['delete_waste']).delete()
 			return HttpResponseRedirect('/private/')
 
-	content = {
-		'doc': 'profile.html',
+	content.update({
+		'doc': 'private.html',
 
-		'role': True,
-		'waste_list': waste_list,
 		'surname': request.session['0'],
-		'admin_messages': admin_messages
-	}
-	# ПОлучение списка всех касс
-	content['users'] = OrdinaryCashier.objects.all()
+	})
 	return render(request, 'base.html', content)
 
 
 # Страница создания новой кассы
 def create(request):
-	# Проверка прав доступа
-	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
-		return HttpResponseRedirect('/index/')
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
-	# Получение списка всех касс
-	users_list = OrdinaryCashier.objects.all()
+	content ={}
+	# Проверка и получение прав доступа
+	content.update(check_user_group(request))
+	# ПОлучение списка касс
+	content.update({'users': OrdinaryCashier.objects.all()})
+	# ПОлучение всех сообщений для юадминистрации
+	content.update(get_admin_messages())
+	if 'OrdinaryCashier' in content['role']:
+		return HttpResponseRedirect('/index/')
 	error = False
 
 	# Обработка форм
@@ -181,7 +186,13 @@ def create(request):
 			date = datetime.date.today()
 			# Создаём нового юзера
 			user.set_password(request.POST['password'])
+			# Добавляем пользователя в выбранную группу сразу же
+			group = Group.objects.get(name = request.POST['cashbox_type'])
+			user.groups.add(group)
 			user.save()
+			# Если пользователь наблюдатель - то касса ему не нужна.
+			if 'Supervisor' == request.POST['cashbox_type']:
+				return HttpResponseRedirect('/index/')
 			# Считываем описание кассы
 			cashier_description_full = request.POST['description_full']
 			cashier_description_short = request.POST['description_short']
@@ -230,42 +241,37 @@ def create(request):
 
 			return HttpResponseRedirect('/index/')
 
-	content = {
+	content.update({
 		'doc': 'create_new_cashbox.html',
 
-		'role': True,
 		'error': error,
-		'users': users_list,
 		'surname': request.session['0'],
-	}
+	})
 	return render(request, 'base.html', content)
 
 
 # Страница для просмотра касс
 def view_cashbox(request, id):
-	role = True
-	# Проверка прав доступа
-	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
-		role = False
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
-	# ПОлучение списка всех записок
-	admin_messages = len(AdministratorScraps.objects.all())
+	content ={}
+	# Проверка и получение прав доступа
+	content.update(check_user_group(request))
+	# ПОлучение списка касс
+	content.update({'users': OrdinaryCashier.objects.all()})
+	# ПОлучение всех сообщений для юадминистрации
+	content.update(get_admin_messages())
 
 	# Список событий
 	actions = []
 	date = datetime.datetime.today()
 	# Контент страницы
-	content = {
+	content.update({
 		'doc': 'view-cashbox.html',
 
 		'id': id,
-		'role': role,
-		'admin_messages': admin_messages,
 		'surname': request.session['0'],
-	}
-	# ПОлучение списка всех касс
-	content['users'] = OrdinaryCashier.objects.all()
+	})
 	# Получение данных определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
 	content['user_inform'] = certain_cashbox
@@ -365,7 +371,6 @@ def edit_cashbox(request, id):
 		'cashbox_data': certain_cashbox,
 		'exchange_rate_data': exchange_rate,
 		'surname': request.session['0'],
-		'role': True,
 		'admin_messages': admin_messages,
 	}
 	# ПОлучение списка всех касс
@@ -377,27 +382,24 @@ def edit_cashbox(request, id):
 def cashbox_info_by_date(request):
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
-	# Проверка прав доступа
-	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
+	content ={}
+	# Проверка и получение прав доступа
+	content.update(check_user_group(request))
+	# ПОлучение списка касс
+	content.update({'users': OrdinaryCashier.objects.all()})
+	# ПОлучение всех сообщений для юадминистрации
+	content.update(get_admin_messages())
+	if 'OrdinaryCashier' in content['role']:
 		return HttpResponseRedirect('/index/')
-	# ПОлучение списка всех записок
-	admin_messages = len(AdministratorScraps.objects.all())
-	# Получение списка всех касс
-	cashbox_list = OrdinaryCashier.objects.all()
 	# Создание пустого списка курсов валют
 	exchange_rate_data = ''
-	content = {
-				'doc': 'cashbox_info_by_date.html',
+	content.update({
+		'doc': 'cashbox_info_by_date.html',
 
-				'cashbox_list': cashbox_list,
-				'surname': request.session['0'],
-				'role': True,
-				'data': False,
-				'exchange_rate_data': exchange_rate_data,
-				'admin_messages': admin_messages,
-			}
-	# ПОлучение списка всех касс
-	content['users'] = OrdinaryCashier.objects.all()
+		'surname': request.session['0'],
+		'data': False,
+		'exchange_rate_data': exchange_rate_data,
+	})
 
 	# Получение определённой кассы
 
@@ -476,7 +478,6 @@ def cashbox_info_by_date(request):
 		content['exchange_rate_data'] = exchange_rate_data
 		content['exchange_rate_info'] = exchange_rate_info
 		content['data'] = True
-		content['role'] = False
 
 	return render(request, 'base.html', content)
 
@@ -1114,10 +1115,10 @@ def save_buy_operation_data(request, currency_changes, cashbox_id):
 	cashier = get_object_or_404(OrdinaryCashier, id = cashbox_id)
 	exchange_rate = json.loads((ExchangeRates.objects.filter(cashbox__id = cashbox_id)
 													.order_by('-id'))[0].exchange_rate)
-	operation_id = ExchangeActions.objects.filter(
+	operation = ExchangeActions.objects.filter(
 										person_data = cashier,
-										currency_changes = json.dumps(currency_changes),
-										).order_by('-id')[0].id
+										currency_changes = json.dumps(currency_changes))
+	operation_id = operation.order_by('-id')[0].id
 	for key in currency_changes.keys():
 		if key != 'uah':
 			IncreaseOperations(
@@ -1203,3 +1204,30 @@ def get_supp_encash_values(request):
 			"pln": -float(request.POST['pln_encashment']),
 		}
 		return encashment_values
+
+
+# Проверяем права доступа пользователя
+def check_user_group(request):
+	'''
+	Функция для опеределения прав доступа пользователя. Бывает три типа прав:
+	1. Администратор - создаёт кассы/операции, удаляет операции, редактирует кассы.
+	2. Обычный кассир - создаёт операции.
+	3. Наблюдатель - может лишь просматривать информацию но без права редактирования
+	:param request: получаем реквест с информацией о юзере
+	:return: возвращаем словарь с типом прав юзера
+	'''
+	if request.user.groups.filter(name = 'ChiefCashier').exists():
+		return {'role': 'ChiefCashier'}
+	elif request.user.groups.filter(name = 'OrdinaryCashier').exists():
+		return {'role': 'OrdinaryCashier'}
+	elif request.user.groups.filter(name = 'Supervisor').exists():
+		return {'role': 'Supervisor'}
+	else:
+		return {'role': ''}
+
+
+# ПОлучение всех сообещений для администрации
+def get_admin_messages():
+	# ПОлучение списка всех записок
+	admin_messages = len(AdministratorScraps.objects.all())
+	return {'admin_messages': admin_messages}

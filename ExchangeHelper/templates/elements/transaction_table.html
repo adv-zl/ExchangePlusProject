@@ -9,7 +9,7 @@
             <tr>
                 <th>№</th>
                 <th>Дата и время</th>
-                {% if role %}
+                {% if 'ChiefCashier' in role or 'Supervisor' in role %}
                     <th>Кассир</th>
                 {% endif %}
                 <th>Коментарий</th>
@@ -27,7 +27,7 @@
                 <td></td>
                 <td >Остаток на <p>{{ rest_money_data.date }}</p></td>
                 <td>-</td>
-                {% if role %}
+                {% if 'ChiefCashier' in role or 'Supervisor' in role %}
                     <td>-</td>
                 {% endif %}
                 <td>{{ rest_money_data.uah }}</td>
@@ -58,7 +58,7 @@
                     <td>{{ action.action.id }}</td>
                     <td>{{ action.action.operation_date }},
                         {{ action.action.operation_time }}</td>
-                    {% if role %}
+                    {% if 'ChiefCashier' in role or 'Supervisor' in role %}
                         <td>{{ action.action.person_surname }}</td>
                     {% endif %}
                     <td>{% if ("Increase" == action.action_type) %}
@@ -80,7 +80,7 @@
                     <td>{{ action.currency_changes.chf or '-' }}</td>
                     <td>{{ action.currency_changes.gbp or '-' }}</td>
                     <td>{{ action.currency_changes.pln or '-' }}</td>
-                    {% if role and action.action.possibility_of_operation %}
+                    {% if 'ChiefCashier' in role and action.action.possibility_of_operation %}
                         <form  name="encashment_form" enctype="multipart/form-data" method="post">
                             <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                             <td>
@@ -91,7 +91,8 @@
                                 </button>
                             </td>
                         </form>
-                    {% elif not role or not action.action.possibility_of_operation %}
+                    {% elif 'OrdinaryCashier' in role or 'Supervisor' in role
+                       or not action.action.possibility_of_operation %}
                         <td>
                             Невозможно
                         </td>
@@ -103,7 +104,7 @@
                     <td>Текущий остаток {{ actions[-1].action.operation_date }},
                         {{ actions[-1].action.operation_time }}</td>
                     <td>-</td>
-                    {% if role %}
+                    {% if 'ChiefCashier' in role or 'Supervisor' in role %}
                         <td>-</td>
                     {% endif %}
                     <td>{{ actions[-1].money_balance_data.uah }}</td>

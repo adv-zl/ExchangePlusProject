@@ -2,12 +2,11 @@
 <div class="container-fluid cont-wrap ng-scope">
     <div class="row">
         <div class="col-sm-3">
-            {% if not role %}
+            {% if 'OrdinaryCashier' in role %}
                 {% block exchange_rate %}
                     {% include 'elements/exchange_rate.html' %}
                 {% endblock %}
-            {% endif %}
-            {% if role %}
+            {% elif 'ChiefCashier' in role %}
                 {% block user_create %}
                     {% include 'elements/user_create.html' %}
                 {% endblock %}
@@ -15,7 +14,7 @@
         </div>
         <div class="col-sm-9">
             <div>
-                {% if not role %}
+                {% if 'OrdinaryCashier' in role %}
                     <div class="panel-body">
                     <a href="/view-cashbox/{{ user_inform.id }}">
                         <p></p>
@@ -27,7 +26,8 @@
                     <p></p>
                     <h4>{{ user_inform.cashier_description_full }}</h4>
                     <p></p>
-                {% else %}
+                {% endif %}
+                {% if 'ChiefCashier' in role or 'Supervisor' in role %}
                     Все кассы:
                     {% for element in users %}
                         <a href="/view-cashbox/{{ element.id }}">

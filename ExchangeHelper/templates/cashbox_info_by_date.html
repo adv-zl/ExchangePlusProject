@@ -14,7 +14,7 @@
                 <p></p>
                     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                     <select name="selected_cashbox">
-                        {% for cashbox in cashbox_list %}
+                        {% for cashbox in users %}
                             <option value="{{ cashbox.id }}">{{ cashbox.cashier_description_short }}</option>
                         {% endfor %}
                     </select>
