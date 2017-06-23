@@ -1,5 +1,9 @@
+import datetime
+import os
+import sqlite3
+import time
+
 import schedule
-import sqlite3, os, datetime, time
 
 
 def main():
@@ -10,7 +14,7 @@ def main():
 	cursor = connection.cursor()
 	# Делаем все старые операции недоступными для удаления
 	cursor.execute("""UPDATE ExchangeHelper_exchangeactions 
-						SET possibility_of_operation = 0
+						SET possibility_of_operation = FALSE 
 						WHERE (operation_date < '{0}');""".format(datetime.date.today()))
 	connection.commit()
 	connection.close()

@@ -498,6 +498,8 @@ def count_result_of_action(request, cashbox_id):
 	if 'support_btn' in request.POST:
 		# Считываем данные из форм инкассации/начисления которые передал нам юзер
 		support_values, increase_rates = get_supp_encash_values(request)
+		# блокриуем предидущую операцию
+		block_action_delete(cashbox_id)
 		# Производим изменение баланса денег
 		money_balance = change_money_balance('Increase',
 											support_values,
@@ -524,6 +526,8 @@ def count_result_of_action(request, cashbox_id):
 	elif 'encashment_btn' in request.POST:
 		# Считываем данные из форм инкассации/начисления которые передал нам юзер
 		encashment_values = get_supp_encash_values(request)
+		# блокриуем предидущую операцию
+		block_action_delete(cashbox_id)
 		# Производим изменение баланса денег
 		money_balance = change_money_balance('Encashment',
 											encashment_values,
@@ -547,6 +551,8 @@ def count_result_of_action(request, cashbox_id):
 	elif 'check' in request.POST:
 		result["action"] = 'Exchange'
 		operation_type = request.POST['operation']
+		# блокриуем предидущую операцию
+		block_action_delete(cashbox_id)
 		# TODO Привести к единообразию "currency_changes" и зачисление валюты в "IncreaseOperations"
 		# Операция покупки валюты за гривны
 		if operation_type == 's':
@@ -723,6 +729,8 @@ def count_result_of_action(request, cashbox_id):
 	# Обработка формы выделения денег кассе
 	elif 'cashbox_waste' in request.POST:
 		person = get_object_or_404(OrdinaryCashier, user__username = request.user.username)
+		# блокриуем предидущую операцию
+		block_action_delete(person.id)
 		# Производим изменение баланса денег
 		money_balance = change_money_balance('Encashment',
 											{
@@ -1231,3 +1239,9 @@ def get_admin_messages():
 	# ПОлучение списка всех записок
 	admin_messages = len(AdministratorScraps.objects.all())
 	return {'admin_messages': admin_messages}
+
+
+# Блокировка для удаления последней совершённой операции
+def block_action_delete(cashbox_id):
+	ExchangeActions.objects.filter(person_data = cashbox_id)\
+									.update(possibility_of_operation = False)
