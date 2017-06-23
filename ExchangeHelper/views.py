@@ -235,7 +235,7 @@ def create(request):
 			ExchangeRates.objects.create(
 					exchange_rate = get_exchange_rate(request),
 					cashbox = get_object_or_404(OrdinaryCashier, user = user),
-					change_date = datetime.date.today(),
+					change_date = date,
 					change_time = datetime.datetime.now().strftime("%H:%M:%S"),
 			)
 
@@ -1243,5 +1243,6 @@ def get_admin_messages():
 
 # Блокировка для удаления последней совершённой операции
 def block_action_delete(cashbox_id):
-	ExchangeActions.objects.filter(person_data = cashbox_id)\
-									.update(possibility_of_operation = False)
+	ExchangeActions.objects.filter(person_data = cashbox_id,
+									operation_date = datetime.date.today()
+									).update(possibility_of_operation = False)
