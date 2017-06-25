@@ -3,18 +3,18 @@
 <div class="container-fluid cont-wrap ng-scope">
     <div class="row">
         <div class="col-sm-3">
-            Все кассы:
-            <p></p>
+            <h4><b>Все кассы:</b></h4>
             {% for element in users %}
-                <p></p>
                 <a href="/view-cashbox/{{ element.id }}">
-                      <button type="button" class="btn btn-default btn-small"
-                              data-toggle="tooltip"
-                              data-placement="left" title="{{ element.cashier_description_full }}">
-                          <span class="glyphicon glyphicon-euro" aria-hidden="true"></span>
-                          {{ element.cashier_description_short }}
-                      </button>
-                  </a>
+                    <p></p>
+                    <button type="button" class="btn btn-default btn-small"
+                            data-toggle="tooltip" data-placement="left"
+                            style="width: 80%"
+                            title="{{ element.cashier_description_full }}">
+                        <span class="glyphicon glyphicon-euro" aria-hidden="true"></span>
+                        {{ element.cashier_description_short }}
+                    </button>
+                </a>
             {% endfor %}
         </div>
         <div class="col-sm-9">

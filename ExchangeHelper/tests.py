@@ -109,6 +109,9 @@ class ClientCheck(TestCase):
 		response = self.client.get('/financial-statement/')
 		self.assertEqual(response.status_code, 302)
 
+		response = self.client.get('/cashbox-monitoring/')
+		self.assertEqual(response.status_code, 302)
+
 	# Проверяем доступ к страницам для ограниченного круга лиц
 	def test_check_chief_only_pages(self):
 		pass

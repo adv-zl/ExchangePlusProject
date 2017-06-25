@@ -482,6 +482,74 @@ def cashbox_info_by_date(request):
 	return render(request, 'base.html', content)
 
 
+# Окно мониторинга всех касс
+def cashbox_monitoring(request):
+	if request.user.is_anonymous():
+		return HttpResponseRedirect('/login/')
+	content ={}
+	cashboxes = []
+	# Проверка и получение прав доступа
+	content.update(check_user_group(request))
+	if 'OrdinaryCashier' in content['role']:
+		return HttpResponseRedirect('/index/')
+	# ПОлучение списка касс
+	content.update({'users': OrdinaryCashier.objects.all()})
+	# ПОлучение всех сообщений для юадминистрации
+	content.update(get_admin_messages())
+
+	date = datetime.datetime.today()
+
+	# Обходим список всех касс и собираем информацию по их операциям и прочиму
+	for cashbox in OrdinaryCashier.objects.all():
+		cashbox_monitoring_element = \
+							{
+							'id': cashbox.id,
+							'cashier_description_short': cashbox.cashier_description_short,
+							'cashier_description_full': cashbox.cashier_description_full
+							}
+		# Вычисление прибыли кассы
+		content['profit_balance'], content['profit_currencies_balance'] = profit_calculation(date, cashbox.id)
+		cashbox_monitoring_element.update({'profit_balance': content['profit_balance']})
+		cashbox_monitoring_element.update(
+					{
+						'profit_currencies_balance': content['profit_currencies_balance']
+					})
+		# Курсы валют
+		cashbox_monitoring_element.update(
+				{'exchange_rate_data': json.loads((ExchangeRates.objects.filter
+							(
+								cashbox = get_object_or_404(OrdinaryCashier, id = cashbox.id)
+							).order_by('-id'))[0].exchange_rate)
+				})
+
+		# Получение данных транзакций и сумм валют определённой кассы
+		transaction_table_data = ExchangeActions.objects.filter(person_data__id = cashbox.id,
+																operation_date =
+																date).order_by('-id')
+		# ПОлучение баланса кассы за прошлый день
+		cashbox_monitoring_element.update(
+									{
+										'rest_money_data': get_rest_money(cashbox.id, date)
+									})
+
+		if transaction_table_data:
+			cashbox_monitoring_element.update(
+					{
+						"action": transaction_table_data[0],
+						"money_balance_data": json.loads(str(transaction_table_data[0].money_balance)),
+					})
+		cashboxes.append(cashbox_monitoring_element)
+
+
+	content.update({
+		'doc': 'cashbox_monitoring.html',
+
+		'surname': request.session['0'],
+		"cashboxes": cashboxes,
+	})
+	return render(request, 'base.html', content)
+
+
 # Обработчик действий выдачи средств/инкассации и операций обмена
 def count_result_of_action(request, cashbox_id):
 	"""
@@ -966,7 +1034,7 @@ def profit_calculation(date, id):
 	:param date: Получает дату по которой делается выборка всех ОБМЕННЫХ операций и 
 	происходит их подсчёт
 	:param id: Получает ID кассы и так же делает выборку по нему и параметру даты
-	:return: Возвращает в словаря сумму всего наторгованного в кассе по определённой дате
+	:return: Возвращает профит за день и изменение денег в кассе
 	"""
 	profit_balance = 0
 	# Профицит за день

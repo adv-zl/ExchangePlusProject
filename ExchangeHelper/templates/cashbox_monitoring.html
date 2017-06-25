@@ -1,0 +1,118 @@
+{% block content %}
+<div class="container-fluid cont-wrap ng-scope">
+    <div class="row">
+        <div class="col-sm-3">
+            <h4><b>Все кассы:</b></h4>
+            {% for element in users %}
+                <a href="/view-cashbox/{{ element.id }}">
+                    <p></p>
+                    <button type="button" class="btn btn-default btn-small"
+                            data-toggle="tooltip" data-placement="left" style="width: 80%"
+                            title="{{ element.cashier_description_full }}">
+                        <span class="glyphicon glyphicon-euro" aria-hidden="true"></span>
+                        {{ element.cashier_description_short }}
+                    </button>
+                </a>
+            {% endfor %}
+        </div>
+        <div class="col-sm-9">
+            {% for cashbox in cashboxes %}
+                <div class="panel-body">
+                        <a href="/view-cashbox/{{ cashbox.id }}">
+                            <p></p>
+                            <button type="button" class="btn btn-default btn-small"
+                                    data-toggle="tooltip" data-placement="left">
+                                <h5><strong>{{ cashbox.cashier_description_short }}</strong></h5>
+                            </button>
+                        </a>
+                    <p></p>
+                    <h5>{{ cashbox.cashier_description_full }}</h5>
+                </div>
+                <div class="panel panel-default">
+                    <table id="AvailableFundsTable" class="table table-bordered">
+                        <tr>
+                            <th>Дата и время</th>
+                            <th>UAH</th>
+                            <th>USD</th>
+                            <th>EUR</th>
+                            <th>RUB</th>
+                            <th>CAD</th>
+                            <th>CHF</th>
+                            <th>GBP</th>
+                            <th>PLN</th>
+                        </tr>
+                        <tr class="info">
+                            <td >Остаток на {{ cashbox.rest_money_data.date }}</td>
+                            <td>{{ cashbox.rest_money_data.uah }}</td>
+                            <td>{{ cashbox.rest_money_data.usd }}</td>
+                            <td>{{ cashbox.rest_money_data.eur }}</td>
+                            <td>{{ cashbox.rest_money_data.rub }}</td>
+                            <td>{{ cashbox.rest_money_data.cad }}</td>
+                            <td>{{ cashbox.rest_money_data.chf }}</td>
+                            <td>{{ cashbox.rest_money_data.gbp }}</td>
+                            <td>{{ cashbox.rest_money_data.pln }}</td>
+                        </tr>
+                        {% if cashbox.action %}
+                            <tr class="warning">
+                                <td>Изменение суммы валют {{ cashbox.action.operation_date }}</td>
+                                <td>{{ cashbox.profit_currencies_balance.uah }}</td>
+                                <td>{{ cashbox.profit_currencies_balance.usd }}</td>
+                                <td>{{ cashbox.profit_currencies_balance.eur }}</td>
+                                <td>{{ cashbox.profit_currencies_balance.rub }}</td>
+                                <td>{{ cashbox.profit_currencies_balance.cad }}</td>
+                                <td>{{ cashbox.profit_currencies_balance.chf }}</td>
+                                <td>{{ cashbox.profit_currencies_balance.gbp }}</td>
+                                <td>{{ cashbox.profit_currencies_balance.pln }}</td>
+                            </tr>
+                            <tr class="success">
+                                <td>Текущий остаток {{ cashbox.action.operation_date }},
+                                    {{ cashbox.action.operation_time }}</td>
+                                <td >{{ cashbox.money_balance_data.uah }}</td>
+                                <td >{{ cashbox.money_balance_data.usd }}</td>
+                                <td >{{ cashbox.money_balance_data.eur }}</td>
+                                <td >{{ cashbox.money_balance_data.rub }}</td>
+                                <td >{{ cashbox.money_balance_data.cad }}</td>
+                                <td >{{ cashbox.money_balance_data.chf }}</td>
+                                <td >{{ cashbox.money_balance_data.gbp }}</td>
+                                <td >{{ cashbox.money_balance_data.pln }}</td>
+                            </tr>
+                            <tr>
+                                <td>В пересчёте на гривны вы имеете</td>
+                                <td>{{ (cashbox.money_balance_data.uah +
+                                 cashbox.money_balance_data.usd * cashbox.exchange_rate_data.usd_sell +
+                                 cashbox.money_balance_data.eur * cashbox.exchange_rate_data.eur_sell +
+                                 cashbox.money_balance_data.rub * cashbox.exchange_rate_data.rub_sell +
+                                 cashbox.money_balance_data.cad * cashbox.exchange_rate_data.cad_sell +
+                                 cashbox.money_balance_data.chf * cashbox.exchange_rate_data.chf_sell +
+                                 cashbox.money_balance_data.gbp * cashbox.exchange_rate_data.gbp_sell +
+                                 cashbox.money_balance_data.pln * cashbox.exchange_rate_data.pln_sell)
+                                 |round(2, 'floor') }}</td>
+                            </tr>
+                            <tr class="success" >
+                                <td>И того, чистая прибыль составила</td>
+                                <td>
+                                    {{ cashbox.profit_balance }} UAH
+                                </td>
+                            </tr>
+                        {% else %}
+                            <tr>
+                                <td>В пересчёте на гривны вы имеете</td>
+                                <td>{{ (cashbox.rest_money_data.uah +
+                                 cashbox.rest_money_data.usd * cashbox.exchange_rate_data.usd_sell +
+                                 cashbox.rest_money_data.eur * cashbox.exchange_rate_data.eur_sell +
+                                 cashbox.rest_money_data.rub * cashbox.exchange_rate_data.rub_sell +
+                                 cashbox.rest_money_data.cad * cashbox.exchange_rate_data.cad_sell +
+                                 cashbox.rest_money_data.chf * cashbox.exchange_rate_data.chf_sell +
+                                 cashbox.rest_money_data.gbp * cashbox.exchange_rate_data.gbp_sell +
+                                 cashbox.rest_money_data.pln * cashbox.exchange_rate_data.pln_sell)
+                                 |round(2, 'floor') }}</td>
+                            </tr>
+                        {% endif %}
+                    </table>
+                </div>
+                <hr>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}
