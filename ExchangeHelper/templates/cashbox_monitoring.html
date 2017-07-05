@@ -17,18 +17,35 @@
         </div>
         <div class="col-sm-9">
             {% for cashbox in cashboxes %}
-                <div class="panel-body">
+                <ul class="nav nav-tabs" role="tablist">
+                    <li role="presentation" class="active">
+                        <a href="#actions{{ cashbox.id }}" aria-controls="actions" role="tab" data-toggle="tab">
+                            <button type="button" class="btn btn-default">
+                                Список операций
+                            </button>
+                        </a>
+                    </li>
+                    <li role="presentation">
+                        <a href="#exchange_rate{{ cashbox.id }}" aria-controls="exchange_rate" role="tab" data-toggle="tab">
+                            <button type="button" class="btn btn-default">
+                                Курс валют
+                            </button>
+                        </a>
+                    </li>
+                </ul>
+                <div class="tab-content">
+                    <div role="tabpanel" class="tab-pane active" id="actions{{ cashbox.id }}">
+                        <div class="panel-body">
                         <a href="/view-cashbox/{{ cashbox.id }}">
-                            <p></p>
                             <button type="button" class="btn btn-default btn-small"
                                     data-toggle="tooltip" data-placement="left">
                                 <h5><strong>{{ cashbox.cashier_description_short }}</strong></h5>
                             </button>
                         </a>
                     <p></p>
-                    <h5>{{ cashbox.cashier_description_full }}</h5>
+                    <h5><font size="4">{{ cashbox.cashier_description_full }}</font> </h5>
                 </div>
-                <div class="panel panel-default">
+                        <div class="panel panel-default">
                     <table id="AvailableFundsTable" class="table table-bordered">
                         <tr>
                             <th>Дата и время</th>
@@ -110,7 +127,57 @@
                         {% endif %}
                     </table>
                 </div>
-                <hr>
+                        <hr>
+                    </div>
+                    <div role="tabpanel" class="tab-pane" id="exchange_rate{{ cashbox.id }}">
+                        <div class="table-condensed" style="width: 30%">
+                            <div class="panel panel-default">
+                                <table class="table table-bordered">
+                                    <tr>
+                                        <th>Валюта</th>
+                                        <th>Покупка</th>
+                                        <th>Продажа</th>
+                                    </tr>
+                                    <tr>
+                                        <td>USD</td>
+                                        <td>{{ cashbox.exchange_rate_data.usd_buy or 0 }}</td>
+                                        <td>{{ cashbox.exchange_rate_data.usd_sell or 0 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>EUR</td>
+                                        <td>{{ cashbox.exchange_rate_data.eur_buy  or 0 }}</td>
+                                        <td>{{ cashbox.exchange_rate_data.eur_sell  or 0 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>RUB</td>
+                                        <td>{{ cashbox.exchange_rate_data.rub_buy  or 0 }}</td>
+                                        <td>{{ cashbox.exchange_rate_data.rub_sell  or 0 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>CAD</td>
+                                        <td>{{ cashbox.exchange_rate_data.cad_buy  or 0 }}</td>
+                                        <td>{{ cashbox.exchange_rate_data.cad_sell  or 0 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>CHF</td>
+                                        <td>{{ cashbox.exchange_rate_data.chf_buy  or 0 }}</td>
+                                        <td>{{ cashbox.exchange_rate_data.chf_sell  or 0 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>GBP</td>
+                                        <td>{{ cashbox.exchange_rate_data.gbp_buy  or 0 }}</td>
+                                        <td>{{ cashbox.exchange_rate_data.gbp_sell  or 0 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>PLN</td>
+                                        <td>{{ cashbox.exchange_rate_data.pln_buy  or 0 }}</td>
+                                        <td>{{ cashbox.exchange_rate_data.pln_sell  or 0 }}</td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             {% endfor %}
         </div>
     </div>

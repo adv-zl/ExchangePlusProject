@@ -12,6 +12,7 @@
             {% block exchange_rate %}
                 {% include 'elements/exchange_rate.html' %}
             {% endblock %}
+        {% include 'forms/admins_warnings.html' %}
         </div>
         <div class="col-sm-9">
             {% if error %}
@@ -19,8 +20,6 @@
                     {% include 'mistakes/operation_error.html' %}
                 {% endblock %}
             {% endif %}
-
-            {% include 'forms/admins_warnings.html' %}
 
             <div class="panel-body">
                 <font size="6"><strong>{{ user_inform.cashier_description_short }}</strong></font>
