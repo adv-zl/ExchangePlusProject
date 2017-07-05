@@ -13,13 +13,9 @@
             {% endif %}
         </div>
         <div class="col-sm-9">
-            <p><div style="width: 60%" class="alert alert-danger">
-                <h4><strong>ВНИМАНИЕ !!!</strong></h4>
-                Изменён порядок удаления операций:
-            <p>Имеется возможность удалить лишь <b>последнюю</b> совершённую операцию!</p>
-                <p>Для удаления всех прочих операций - обращаться к
-                                <a href="mailto:cashmanagerhelp@gmail.com">админу</a>.</p>
-            </div>
+
+            {% include 'forms/admins_warnings.html' %}
+
             <div>
                 {% if 'OrdinaryCashier' in role %}
                     <div class="panel-body">
@@ -35,10 +31,9 @@
                     <p></p>
                 {% endif %}
                 {% if 'ChiefCashier' in role or 'Supervisor' in role %}
-                    <h4><b>Все кассы:</b></h4>
+                    <h4><b>Все кассы:</b></h4><p>
                     {% for element in users %}
                         <a href="/view-cashbox/{{ element.id }}">
-                            <p></p>
                             <button type="button" class="btn btn-default btn-small"
                                     data-toggle="tooltip" data-placement="left"
                                     style="width: 30%"
@@ -47,6 +42,7 @@
                                 {{ element.cashier_description_short }}
                             </button>
                         </a>
+                        <p></p>
                     {% endfor %}
                 {% endif %}
                 </div>

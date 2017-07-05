@@ -1,5 +1,5 @@
 from django.test import Client, TestCase
-
+import requests as request
 from .models import Group, OrdinaryCashier, User
 
 
@@ -56,7 +56,7 @@ class ClientCheck(TestCase):
 				cashier_description_full = "Full description",
 				cashier_description_short = "Short description",
 		)
-		# self.USER.groups.add(self.ORDINARY_GRP, self.CHIEF_GRP, self.SUPERVISOR_GRP)
+		self.USER.groups.add(self.ORDINARY_GRP, self.CHIEF_GRP, self.SUPERVISOR_GRP)
 
 	# Проверяем вход
 	def test_login_user(self):
@@ -115,6 +115,5 @@ class ClientCheck(TestCase):
 	# Проверяем доступ к страницам для ограниченного круга лиц
 	def test_check_chief_only_pages(self):
 		pass
-
 
 

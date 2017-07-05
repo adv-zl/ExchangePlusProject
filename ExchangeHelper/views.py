@@ -173,7 +173,7 @@ def create(request):
 	content.update({'users': OrdinaryCashier.objects.all()})
 	# ПОлучение всех сообщений для юадминистрации
 	content.update(get_admin_messages())
-	if 'OrdinaryCashier' in content['role']:
+	if 'OrdinaryCashier' in content['role'] or 'Supervisor' in content['role']:
 		return HttpResponseRedirect('/index/')
 	error = False
 
@@ -281,7 +281,9 @@ def view_cashbox(request, id):
 	transaction_table_data = ExchangeActions.objects.filter(person_data__id = id,
 															operation_date = date)
 
-	content['rest_money_data'] = get_rest_money(id, date)
+	content['rest_money_data'], exchange_rate_info = get_rest_money_and_rate(id, date)
+	# Извлекаем курсы валют
+	content['exchange_rate_data'] = json.loads(exchange_rate_info.exchange_rate)
 
 	if transaction_table_data:
 		for action in transaction_table_data:
@@ -296,9 +298,6 @@ def view_cashbox(request, id):
 				'operation_profit': action.operation_profit,
 			})
 		content['actions'] = actions
-	# Курсы валют
-	content['exchange_rate_data'] = json.loads((ExchangeRates.objects.filter(cashbox = certain_cashbox)
-												.order_by('-id'))[0].exchange_rate)
 
 	# Обработка форм
 	if request.POST:
@@ -339,8 +338,10 @@ def view_cashbox(request, id):
 def edit_cashbox(request, id):
 	if request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
+	content = {}
+	content.update(check_user_group(request))
 	# Проверка прав доступа
-	if not request.user.has_perm('ExchangeHelper.delete_exchangeactions'):
+	if 'OrdinaryCashier' in content['role'] or 'Supervisor' in content['role']:
 		return HttpResponseRedirect('/index/')
 	# ПОлучение списка всех записок
 	admin_messages = len(AdministratorScraps.objects.all())
@@ -365,14 +366,14 @@ def edit_cashbox(request, id):
 
 		return HttpResponseRedirect('/index/')
 
-	content = {
+	content.update({
 		'doc': 'edit_cashbox.html',
 
 		'cashbox_data': certain_cashbox,
 		'exchange_rate_data': exchange_rate,
 		'surname': request.session['0'],
 		'admin_messages': admin_messages,
-	}
+	})
 	# ПОлучение списка всех касс
 	content['users'] = OrdinaryCashier.objects.all()
 	return render(request, 'base.html', content)
@@ -423,13 +424,8 @@ def cashbox_info_by_date(request):
 
 				return render(request, 'base.html', content)
 
-			content['rest_money_data'] = get_rest_money(certain_cashbox.id, date)
-			try:
-				exchange_rate_info = (ExchangeRates.objects.filter(
-															cashbox_id = certain_cashbox.id,
-															change_date = date
-															).order_by('-id'))[0]
-			except:
+			content['rest_money_data'], exchange_rate_info = get_rest_money_and_rate(certain_cashbox.id, date)
+			if not exchange_rate_info:
 				content['doc'] = 'mistakes/wrong_date.html'
 				content['data'] = True
 
@@ -451,11 +447,9 @@ def cashbox_info_by_date(request):
 
 				return render(request, 'base.html', content)
 
-			content['rest_money_data'] = get_rest_money(certain_cashbox.id,
-														datetime.datetime.today())
+			content['rest_money_data'], exchange_rate_info = get_rest_money_and_rate(certain_cashbox.id,
+																					datetime.datetime.today())
 
-			exchange_rate_info = ExchangeRates.objects.filter(
-										cashbox_id = certain_cashbox.id).order_by('-id')[0]
 			# Вычисление прибыли кассы
 			content['profit_balance'], content['profit_currencies_balance'] = \
 				profit_calculation(datetime.datetime.today(),
@@ -470,12 +464,11 @@ def cashbox_info_by_date(request):
 				# Получение данных о операциях
 				"action_type": action.action_type,
 				"currency_changes": json.loads(action.currency_changes),
-				"action_comment": action.comment,
+				"action_comment": 'dasdasadas',
 			})
 		content['actions'] = actions
 
-		exchange_rate_data = json.loads(exchange_rate_info.exchange_rate)
-		content['exchange_rate_data'] = exchange_rate_data
+		content['exchange_rate_data'] = json.loads(exchange_rate_info.exchange_rate)
 		content['exchange_rate_info'] = exchange_rate_info
 		content['data'] = True
 
@@ -514,23 +507,14 @@ def cashbox_monitoring(request):
 					{
 						'profit_currencies_balance': content['profit_currencies_balance']
 					})
-		# Курсы валют
-		cashbox_monitoring_element.update(
-				{'exchange_rate_data': json.loads((ExchangeRates.objects.filter
-							(
-								cashbox = get_object_or_404(OrdinaryCashier, id = cashbox.id)
-							).order_by('-id'))[0].exchange_rate)
-				})
-
 		# Получение данных транзакций и сумм валют определённой кассы
 		transaction_table_data = ExchangeActions.objects.filter(person_data__id = cashbox.id,
 																operation_date =
 																date).order_by('-id')
 		# ПОлучение баланса кассы за прошлый день
-		cashbox_monitoring_element.update(
-									{
-										'rest_money_data': get_rest_money(cashbox.id, date)
-									})
+		cashbox_monitoring_element['rest_money_data'], exchange_rate_info = get_rest_money_and_rate(cashbox.id, date)
+		# Получение курсов
+		cashbox_monitoring_element['exchange_rate_data'] = json.loads(exchange_rate_info.exchange_rate)
 
 		if transaction_table_data:
 			cashbox_monitoring_element.update(
@@ -822,17 +806,17 @@ def count_result_of_action(request, cashbox_id):
 				money_balance = json.dumps(money_balance),
 				action_type = 'Encashment',
 				currency_changes = encashment_values,
-				comment = ("Выделение денег кассе - {0}; Коментарий: ".format(cashier)
-										+ re.sub(r'\s+', ' ', request.POST['comment']))
+				comment = ("Выделение денег кассе - {0};".format(cashier.cashier_description_short) +
+							"Коментарий: "	+ re.sub(r'\s+', ' ', request.POST['comment']))
 		).save()
 		if request.POST['currency'] != 'uah':
 			# Удаляем деньги из таблицы при инкассации средств
-			delete_increase_values(json.loads(encashment_values), cashbox_id, request)
+			delete_increase_values(json.loads(encashment_values), person.id, request)
 	return True
 
 
 # Получение информации о балансе за прошлый день
-def get_rest_money(id, date):
+def get_rest_money_and_rate(id, date):
 	"""
 	Получаем информацию о балансе за прошлый рабочий день, максимальный срок - 2 
 	месяца, иначе операция считается невыполнимой.
@@ -842,24 +826,34 @@ def get_rest_money(id, date):
 	:return: Возвращает словарь значений состоящий из баланса денег после последней 
 	операции и дате выборки
 	"""
-	rest_money_data = None
-	if date > datetime.datetime.today():
-		date = datetime.date.today()
+	rest_money_data, exchange_rate = None, None
+	new_date = date
+	if new_date > datetime.datetime.today() or not new_date:
+		new_date = datetime.date.today()
 	# Предельная глубина поиска от заданой даты
-	max_depth = date.month - 2
+	max_iterations = 60
 	# Если данных за сегодня нет - получаем данные за вчерашний день, о сумме валюте
-	while date.month >= max_depth and not rest_money_data:
-		date = date - datetime.timedelta(days = 1)
+	while max_iterations >= 0 and not rest_money_data:
+		new_date = new_date - datetime.timedelta(days = 1)
+		max_iterations = max_iterations - 1
 		try:
 			rest_money_data = (ExchangeActions.objects.filter(person_data__id = id,
-																operation_date = date
-																).order_by('-id'))[0]
+																operation_date = new_date).order_by('-id'))[0]
 		except:
 			pass
 	# Получение информации о балансе за прошлый день
 	rest_money_data = json.loads(str(rest_money_data.money_balance))
-	rest_money_data['date'] = date.date()
-	return rest_money_data
+	rest_money_data['date'] = new_date.date()
+	# Если данных за сегодня нет - получаем данные за вчерашний день, о курсах и т.д. пока не найдём или не достигнем дна
+	while not exchange_rate:
+		try:
+			exchange_rate = (ExchangeRates.objects.filter(cashbox_id = id, change_date = date).order_by('-id'))[0]
+		except:
+			pass
+		finally:
+			date = date - datetime.timedelta(days = 1)
+
+	return rest_money_data, exchange_rate
 
 
 # Изменение баланса денег в зависимости от действий юзера

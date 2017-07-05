@@ -19,8 +19,11 @@
                     {% include 'mistakes/operation_error.html' %}
                 {% endblock %}
             {% endif %}
+
+            {% include 'forms/admins_warnings.html' %}
+
             <div class="panel-body">
-                <h3><strong>{{ user_inform.cashier_description_short }}</strong></h3>
+                <font size="6"><strong>{{ user_inform.cashier_description_short }}</strong></font>
                 {% if 'ChiefCashier' in role %}
                     <a href="/edit-cashbox/{{ id }}">
                         <button style="width: 160px;" type="button" class="btn btn-default" >

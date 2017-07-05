@@ -41,7 +41,7 @@ class ExchangeActions(models.Model):
 	# ПРибыль от обменно операции
 	operation_profit = models.FloatField(default = 0)
 	# Коментарий к событию
-	comment = models.CharField(max_length = 200)
+	comment = models.CharField(max_length = 200, default = ' ')
 	# Активна ли операция, если да то она поерация обмена иона не удалённая
 	possibility_of_operation = models.BooleanField(default = True)
 
