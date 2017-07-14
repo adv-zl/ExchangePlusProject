@@ -1,7 +1,6 @@
 from django.contrib import admin
-from .models import OrdinaryCashier, ExchangeActions, AdministratorScraps, \
-	ExchangeRates, IncreaseOperations
+from .models import OrdinaryCashier, ExchangeActions, MoneyRequest, \
+	ExchangeRates, IncreaseOperations, Scrap
 
-admin.site.register([OrdinaryCashier, ExchangeActions, AdministratorScraps,
-					 ExchangeRates, IncreaseOperations])
+admin.site.register([OrdinaryCashier, ExchangeActions, MoneyRequest, ExchangeRates, IncreaseOperations, Scrap])
 # Register your models here.

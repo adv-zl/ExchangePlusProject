@@ -1,28 +1,33 @@
 {% block content %}
     <div class="modal-content">
-        <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                <span aria-hidden="true">&times;</span></button>
-            <h4 align="center" class="modal-title">
-                Записка</h4>
+        <div style="width: 100%" class="alert alert-danger">
+        <h4><strong>** ВНИМАНИЕ **</strong></h4>
+            Просьба правильно заполнять все поля, <strong>в поле для суммы указывать сумму, для валюты - выбирать валюту и так же корректно заполнять тему</strong>
+            , при желании, заполните и коментарий.
+            <p>
+                Это позволит администратору оперативно подтвердить <strong>выделение средств из вашей кассы</strong> на ваши нужды.
+            </p>
+            <p>
+                Если же вам этого интерфейса не хватает - воспользуйтесь возможностями <strong>"Записки администратору"</strong>.
+            </p>
         </div>
 
         <div class="modal-body">
             <div align="center">
-                <form  name="wasting_money" enctype="multipart/form-data" method="post">
+                <form  name="wasting_money_request" enctype="multipart/form-data" method="post">
                     <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
                     <div class="input-group">
                         <div style="width:170px;" class="input-group-addon">
                             Введите причину
                         </div>
-                        <input required name="wasting_reason" type="text"
+                        <input required name="wasting_request_reason" type="text"
                                style="width:245px; height: 30px">
                     </div>
                     <p><div class="input-group">
                         <div style="width:315px;" class="input-group-addon">
                             Введите сумму
                         </div>
-                        <input value="0" name="wasting_summ" type="number" step="0.01"
+                        <input value="0" name="wasting_request_summ" type="number" step="0.01"
                                style="width:100px; height: 30px">
                     </div>
 
@@ -56,7 +61,7 @@
                         <button type="button" class="btn btn-default" data-dismiss="modal">
                             Закрыть
                         </button>
-                        <button type="submit" name="wasting_money_btn" class="btn btn-primary"
+                        <button type="submit" name="wasting_request_btn" class="btn btn-primary"
                                 onclick="this.style.display='none';">
                             Отправить
                         </button>

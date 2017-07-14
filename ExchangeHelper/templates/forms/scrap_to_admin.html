@@ -1,0 +1,44 @@
+{% block content %}
+    <div class="modal-content">
+        <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span></button>
+            <h4 align="center" class="modal-title">
+                Записка администратору</h4>
+        </div>
+
+        <div class="modal-body">
+            <div align="center">
+                <form  name="scrap_to_admin" enctype="multipart/form-data" method="post">
+                    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
+                    <div class="input-group">
+                        <div style="width:170px;" class="input-group-addon">
+                            Введите тему
+                        </div>
+                        <input required name="scrap_subject" type="text"
+                               style="width:245px; height: 30px">
+                    </div>
+                    <p><div class="input-group">
+                        <div style="width:210px;" class="input-group-addon">
+                            Введите тело записки
+                        </div>
+                        <div style="width:180px;" class="form-group">
+                            <textarea required name="comment" class="form-control" rows="2">
+                            </textarea>
+                        </div>
+                    </div>
+
+                    <p><div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">
+                            Закрыть
+                        </button>
+                        <button type="submit" name="scrap_to_admin" class="btn btn-primary"
+                                onclick="this.style.display='none';">
+                            Отправить
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+{% endblock %}

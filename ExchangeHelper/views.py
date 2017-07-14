@@ -6,12 +6,11 @@ from django.contrib import auth
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 
-from .models import AdministratorScraps, ExchangeActions, ExchangeRates, Group,\
+from .models import MoneyRequest, Scrap, ExchangeActions, ExchangeRates, Group,\
 	IncreaseOperations, OrdinaryCashier, User
 
 
 # TODO Заполнить документации к функциям
-# TODO Закончить разделение прав юзеров на 3 группы
 
 # основная странциа с формами и функционалом
 def index(request):
@@ -128,30 +127,39 @@ def private(request):
 		return HttpResponseRedirect('/index/')
 	elif request.user.is_anonymous():
 		return HttpResponseRedirect('/login/')
-	# Получение списка записок/трат
-	scraps_list = AdministratorScraps.objects.all().order_by('-id')
+	# Получение списка записок/трат активных
+	scraps_list = Scrap.objects.filter(usability = True).order_by('-id')
+	requests_list = MoneyRequest.objects.filter(usability = True).order_by('-id')
+	# Получение списка записок/трат старых
+	old_scraps_list = Scrap.objects.filter(usability = False).order_by('-id')
+	old_requests_list = MoneyRequest.objects.filter(usability = False).order_by('-id')
 	if not scraps_list:
 		scraps_list = None
+	if not requests_list:
+		requests_list = None
+	if not old_scraps_list:
+		old_scraps_list = None
+	if not old_requests_list:
+		old_requests_list = None
 	content.update({'scraps_list': scraps_list})
+	content.update({'requests_list': requests_list})
+	content.update({'old_scraps_list': old_scraps_list})
+	content.update({'old_requests_list': old_requests_list})
 
 	# Обработка форм
 	if request.POST:
-		# добавление записи
-		if 'wasting_money_btn' in request.POST:
-			AdministratorScraps(
-					waste_cashbox = OrdinaryCashier.objects.get(user__username = request.user.username),
-					waste_author = request.session['0'],
-					waste_reason = request.POST['wasting_reason'],
-					waste_summ = request.POST['wasting_summ'],
-					waste_currency = request.POST['currency'],
-					waste_comment = re.sub(r'\s+', ' ', request.POST['comment']),
-					waste_date = datetime.date.today(),
-					waste_time = datetime.datetime.now().strftime("%H:%M:%S"),
-			).save()
+		# Скрытие записки
+		if 'hide_scrap' in request.POST:
+			Scrap.objects.filter(id = int(request.POST['hide_scrap'])).update(usability = False)
 			return HttpResponseRedirect('/private/')
-		# удаление записи
-		elif 'delete_waste' in request.POST:
-			AdministratorScraps.objects.get(id = request.POST['delete_waste']).delete()
+		# Удаление реквеста
+		elif 'abort_request' in request.POST:
+			MoneyRequest.objects.filter(id = (request.POST['abort_request'])).update(usability = False)
+			return HttpResponseRedirect('/private/')
+		# Одобрение реквеста
+		elif 'agree_request' in request.POST:
+
+			MoneyRequest.objects.filter(id = (request.POST['abort_request'])).update(usability = False, approved = True)
 			return HttpResponseRedirect('/private/')
 
 	content.update({
@@ -311,16 +319,27 @@ def view_cashbox(request, id):
 			).save()
 			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
 		# Обработка формы создания записки
-		elif 'wasting_money_btn' in request.POST:
-			AdministratorScraps(
-					waste_cashbox = get_object_or_404(OrdinaryCashier, id = id),
-					waste_author = request.session['0'],
-					waste_reason = request.POST['wasting_reason'],
-					waste_summ = request.POST['wasting_summ'],
-					waste_currency = request.POST['currency'],
-					waste_comment = re.sub(r'\s+', ' ', request.POST['comment']),
-					waste_date = datetime.date.today(),
-					waste_time = datetime.datetime.now().strftime("%H:%M:%S"),
+		elif 'scrap_to_admin' in request.POST:
+			Scrap(
+				scrap_author_cashbox = get_object_or_404(OrdinaryCashier, id = id),
+				scrap_author = request.session['0'],
+				scrap_reason = request.POST['scrap_subject'],
+				scrap_comment = re.sub(r'\s+', ' ', request.POST['comment']),
+				scrap_date = datetime.date.today(),
+				scrap_time = datetime.datetime.now().strftime("%H:%M:%S"),
+			).save()
+			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
+		# Обработка формы создания запроса на разрешение использования денег кассы
+		elif 'wasting_request_btn' in request.POST:
+			MoneyRequest(
+				waste_request_cashbox = get_object_or_404(OrdinaryCashier, id = id),
+				waste_request_author = request.session['0'],
+				waste_request_reason = request.POST['wasting_request_reason'],
+				waste_request_summ = request.POST['wasting_request_summ'],
+				waste_request_currency = request.POST['currency'],
+				waste_request_comment = re.sub(r'\s+', ' ', request.POST['comment']),
+				waste_request_date = datetime.date.today(),
+				waste_request_time = datetime.datetime.now().strftime("%H:%M:%S"),
 			).save()
 			return HttpResponseRedirect('/view-cashbox/{0}'.format(id))
 		# Обработка остальных операций
@@ -344,7 +363,7 @@ def edit_cashbox(request, id):
 	if 'OrdinaryCashier' in content['role'] or 'Supervisor' in content['role']:
 		return HttpResponseRedirect('/index/')
 	# ПОлучение списка всех записок
-	admin_messages = len(AdministratorScraps.objects.all())
+	admin_messages = get_admin_messages()
 	# Получение определённой кассы
 	certain_cashbox = get_object_or_404(OrdinaryCashier, id = id)
 	exchange_rate = json.loads(ExchangeRates.objects.filter(cashbox = certain_cashbox)
@@ -464,7 +483,7 @@ def cashbox_info_by_date(request):
 				# Получение данных о операциях
 				"action_type": action.action_type,
 				"currency_changes": json.loads(action.currency_changes),
-				"action_comment": 'dasdasadas',
+				"action_comment": action.comment,
 			})
 		content['actions'] = actions
 
@@ -568,10 +587,10 @@ def count_result_of_action(request, cashbox_id):
 				comment = re.sub(r'\s+', ' ', request.POST['comment']),
 		).save()
 		# ПОлучаем ID последней созданной нами операции
-		increase_operation_id = get_object_or_404(ExchangeActions,
-											currency_changes = json.dumps(support_values),
-											person_data = cashier
-											).id
+		increase_operation_id = (ExchangeActions.objects.filter(currency_changes = json.dumps(support_values),
+		                                                        person_data = cashier,
+		                                                        operation_date = datetime.date.today()).order_by('-id')
+		                         )[0].id
 		# Создаём отдельную запись в для мониторинга курса и подсчёта прибыли
 		add_increase_values(increase_rates, cashbox_id, request, increase_operation_id)
 	# Отправляем инкассацию
@@ -638,9 +657,6 @@ def count_result_of_action(request, cashbox_id):
 				request.POST['currency_1']: -float(request.POST['summ_1']),
 				'uah': float(request.POST['summ_2'])
 			})
-			operation_profit = get_operation_profit(json.loads(currency_changes),
-													cashbox_id,
-													request)
 			# Изменяем баланс денег в кассе
 			money_balance = change_money_balance('Exchange',
 												 json.loads(currency_changes),
@@ -656,8 +672,9 @@ def count_result_of_action(request, cashbox_id):
 					action_type = 'Exchange',
 					currency_changes = currency_changes,
 					comment = 'Обменная операция.',
-					operation_profit = operation_profit,
+					operation_profit = 0
 			).save()
+			get_operation_profit(json.loads(currency_changes), cashbox_id, request)
 	# Удаление операций
 	elif 'delete_operation' in request.POST:
 		currency_changes = {}
@@ -781,7 +798,7 @@ def count_result_of_action(request, cashbox_id):
 	# Обработка формы выделения денег кассе
 	elif 'cashbox_waste' in request.POST:
 		person = get_object_or_404(OrdinaryCashier, user__username = request.user.username)
-		# блокриуем предидущую операцию
+		# блокриуем предыдущую операцию
 		block_action_delete(person.id)
 		# Производим изменение баланса денег
 		money_balance = change_money_balance('Encashment',
@@ -1064,7 +1081,7 @@ def get_operation_profit(currency_changes, cashbox_id, request):
 	# ПОлучаем ID полседеней операции для того что бы привязать её к инкассации
 	operation_id = ExchangeActions.objects.filter(
 						person_data = get_object_or_404(OrdinaryCashier, id = cashbox_id),
-				).order_by('-id')[0].id + 1
+				).order_by('-id')[0].id
 	exchange_rate = json.loads((ExchangeRates.objects.filter(cashbox__id = cashbox_id)
 														.order_by('-id'))[0].exchange_rate)
 	# ПОлучаем данные юзера
@@ -1169,7 +1186,8 @@ def get_operation_profit(currency_changes, cashbox_id, request):
 						usability = False,
 				).save()
 
-	return round(operation_profit, 2)
+	# Обновляем прибыль на операции на основе вычислений
+	ExchangeActions.objects.filter(id = operation_id).update(operation_profit = operation_profit)
 
 
 # СОхраняем в прибыток валюту полученную при покупке и курс
@@ -1187,7 +1205,7 @@ def save_buy_operation_data(request, currency_changes, cashbox_id):
 													.order_by('-id'))[0].exchange_rate)
 	operation = ExchangeActions.objects.filter(
 										person_data = cashier,
-										currency_changes = json.dumps(currency_changes))
+										operation_date = datetime.date.today())
 	operation_id = operation.order_by('-id')[0].id
 	for key in currency_changes.keys():
 		if key != 'uah':
@@ -1299,12 +1317,11 @@ def check_user_group(request):
 # ПОлучение всех сообещений для администрации
 def get_admin_messages():
 	# ПОлучение списка всех записок
-	admin_messages = len(AdministratorScraps.objects.all())
+	admin_messages = len(MoneyRequest.objects.filter(usability = True)) + len(Scrap.objects.filter(usability = True))
 	return {'admin_messages': admin_messages}
 
 
 # Блокировка для удаления последней совершённой операции
 def block_action_delete(cashbox_id):
 	ExchangeActions.objects.filter(person_data = cashbox_id,
-									operation_date = datetime.date.today()
-									).update(possibility_of_operation = False)
+									operation_date = datetime.date.today()).update(possibility_of_operation = False)

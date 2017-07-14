@@ -51,22 +51,36 @@
                     </div>
                 </li>
             {% endif %}
-                <li>
-                    <button title="Записка для администратора" style="width:100%;"
-                            type="button" class="btn btn-default" data-toggle="modal"
-                            data-target="#Waisting">
-                        <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span>
-                        Записки
-                    </button>
-                    <div class="modal fade" id="Waisting" tabindex="-1" role="dialog"
-                         aria-labelledby="myModalLabel">
-                        <div class="modal-dialog" role="document">
-                            {% block waisting_form %}
-                                {% include 'forms/special_operation_form.html' %}
-                            {% endblock %}
-                        </div>
+            <li>
+                <button title="Записка для администратора" style="width:100%;"
+                        type="button" class="btn btn-default" data-toggle="modal"
+                        data-target="#Scrap">
+                    <span class="glyphicon glyphicon-send" aria-hidden="true"></span>
+                    Записка администратору
+                </button>
+                <div class="modal fade" id="Scrap" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        {% block scrap_to_admin_form %}
+                            {% include 'forms/scrap_to_admin.html' %}
+                        {% endblock %}
                     </div>
-                </li>
+                </div>
+            </li>
+            <li>
+                <button title="Запрос на выделение средств" style="width:100%;"
+                        type="button" class="btn btn-default" data-toggle="modal"
+                        data-target="#WaistingRequest">
+                    <span class="glyphicon glyphicon-share-alt" aria-hidden="true"></span>
+                    Запрос на выделение средств
+                </button>
+                <div class="modal fade" id="WaistingRequest" tabindex="-1" role="dialog">
+                    <div class="modal-dialog" role="document">
+                        {% block money_request_form %}
+                            {% include 'forms/money_request.html' %}
+                        {% endblock %}
+                    </div>
+                </div>
+            </li>
         </ul>
     </div>
 {% endblock %}
