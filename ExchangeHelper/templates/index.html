@@ -17,6 +17,10 @@
 
             {% include 'forms/admins_warnings.html' %}
 
+            {% if 'ChiefCashier' in role or 'Supervisor' in role %}
+                {% include 'forms/modal_warning_to_admins.html' %}
+            {% endif %}
+
             <div>
                 {% if 'OrdinaryCashier' in role %}
                     <div class="panel-body">

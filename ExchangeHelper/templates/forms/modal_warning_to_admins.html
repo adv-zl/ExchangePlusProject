@@ -1,0 +1,53 @@
+{% block content %}
+<div id="AdminWarning" class="modal fade">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <!-- Заголовок модального окна -->
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+        <h4 class="modal-title">Интересная информация.</h4>
+      </div>
+      <!-- Основное содержимое модального окна -->
+      <div class="modal-body">
+          <p></p><div  class="alert alert-danger">
+          Ув. Администрация, хотелось бы напомнить о нескольких вещах:
+          <ul>
+              <li>1. Уже довольно давно добавлен такой функционал как <strong><a href="/cashbox-monitoring/">"Окно мониторинга" всех касс</a>.</strong>
+                  <p></p>Но многие продолжают проверять баланс и курс валют на кассе старым методом: тыкая во все кассы очереди, хотя точно такая же
+                      информация собрана на одной странице и облегчает мониторинг всех касс одновременно.
+              </li>
+              <li>2. Срок оплаченой аренды сервера истекает <strong>09.08.2017 г</strong>. По этой причине просьба оплатить 10 <span class="glyphicon glyphicon-euro"></span>
+                  , желательно не дожидаясь крайнего срока, а ещё желательнее - оплатить на пару месяцев вперёд и забыть об этом вопросе.
+              </li>
+              <li>3. Хотелось бы напомнить о том, что нужно что-то окончательно решать с <strong>администрированием</strong>
+                  приложения и <strong>расширением/изменением функционала</strong>.
+              </li>
+          </ul>
+          Спасибо!
+        </div>
+          Все пожелания/предложения/замечания высылать на <strong><a href="mailto:cashmanagerhelp@gmail.com">почту</a></strong>.
+      </div>
+      <!-- Футер модального окна -->
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">
+            <span class="glyphicon glyphicon-ok-sign" ></span>
+            Понятно
+        </button>
+        <a href="/logout">
+            <button type="button" class="btn btn-primary" >
+                <span class="glyphicon glyphicon-remove-sign" aria-hidden="true"></span>
+                Не понятно
+            </button>
+          </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Скрипт, вызывающий модальное окно после загрузки страницы -->
+<script>
+  $(document).ready(function() {
+    $("#AdminWarning").modal('show');
+  });
+</script>
+{% endblock %}
