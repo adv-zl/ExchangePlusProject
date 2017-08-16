@@ -1,0 +1,8 @@
+
+\.idea/
+
+ExchangePlusProject/__pycache__/
+
+ExchangeHelper/__pycache__/
+
+ExchangeHelper/migrations/__pycache__/

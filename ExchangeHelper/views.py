@@ -45,6 +45,7 @@ def index(request):
 
 # Главная страница с кратким описание проекта
 def home(request):
+	return render(request, 'mistakes/no_money.html')
 	content = {
 		'doc': 'home.html',
 		'role': ''
